@@ -126,73 +126,66 @@ B <-->|Django ORM| C
 
 #### Database
 
-```mermaid
----
-title: Sample Database ERD for an Order System
----
-erDiagram
-    Customer ||--o{ Order : "placed by"
-    Order ||--o{ OrderItem : "contains"
-    Product ||--o{ OrderItem : "included in"
-
-    Customer {
-        int customer_id PK
-        string name
-        string email
-        string phone
-    }
-
-    Order {
-        int order_id PK
-        int customer_id FK
-        string order_date
-        string status
-    }
-
-    Product {
-        int product_id PK
-        string name
-        string description
-        decimal price
-    }
-
-    OrderItem {
-        int order_item_id PK
-        int order_id FK
-        int product_id FK
-        int quantity
-    }
-```
+| Table | Column        | Type   |
+|------:|---------------|--------|
+| User  | user_name     | string |
+| User  | password      | string |
+| User  | matches_won   | int    |
+| User  | highest_score | int    |
 
 #### Class Diagram
 
 ```mermaid
----
-title: Sample Class Diagram for Animal Program
----
 classDiagram
-    class Animal {
-        - String name
-        + Animal(String name)
-        + void setName(String name)
-        + String getName()
-        + void makeSound()
-    }
-    class Dog {
-        + Dog(String name)
-        + void makeSound()
-    }
-    class Cat {
-        + Cat(String name)
-        + void makeSound()
-    }
-    class Bird {
-        + Bird(String name)
-        + void makeSound()
-    }
-    Animal <|-- Dog
-    Animal <|-- Cat
-    Animal <|-- Bird
+direction TB
+
+class User {
+  - String userName
+  - String passwordHash
+  - int matchesWon
+  - int highestScore
+  + User(userName: String, passwordHash: String)
+  + getUserName() String
+  + checkPassword(password: String) bool
+  + getMatchesWon() int
+  + getHighestScore() int
+}
+
+class Player {
+  - int currentScore
+  - List~String~ submittedWords
+  + Player(userName: String, passwordHash: String)
+  + submitWord(word: String) bool
+  + resetForNewGame() void
+  + getCurrentScore() int
+}
+
+class Dictionary {
+  - Set~String~ words
+  + Dictionary(sourcePath: String)
+  + contains(word: String) bool
+  + addWord(word: String) void
+  + load(sourcePath: String) void
+}
+
+class Game {
+  - String gameId
+  - char[][] board
+  - List~Player~ players
+  - Dictionary dictionary
+  - Timer timer
+  + Game(gameId: String, dictionary: Dictionary, roundSeconds: int)
+  + start() void
+  + end() void
+  + addPlayer(p: Player) void
+  + removePlayer(p: Player) void
+  + validateWord(p: Player, word: String) bool
+  + getCurrentTime() int
+}
+
+User <|-- Player
+Game o-- Dictionary
+Game o-- Player
 ```
 
 #### Flowchart
