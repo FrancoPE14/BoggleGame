@@ -20,8 +20,6 @@ WIP
 
 #### Technology Stack
 
-<!--Here are some sample technology stacks that you can use for inspiration:
-
 ```mermaid
 flowchart RL
 subgraph Front End
@@ -34,10 +32,11 @@ end
 	
 subgraph Database
 	C[(MySQL)]
-end
--->
 
-WIP
+A <-->|"REST API"| B
+B <-->C
+end
+```
 
 
 #### Database
@@ -104,31 +103,9 @@ Game o-- Dictionary
 Game o-- Player
 ```
 
-#### Flowchart
-
-```mermaid
----
-title: Sample Program Flowchart
----
-graph TD;
-    Start([Start]) --> Input_Data[/Input Data/];
-    Input_Data --> Process_Data[Process Data];
-    Process_Data --> Validate_Data{Validate Data};
-    Validate_Data -->|Valid| Process_Valid_Data[Process Valid Data];
-    Validate_Data -->|Invalid| Error_Message[/Error Message/];
-    Process_Valid_Data --> Analyze_Data[Analyze Data];
-    Analyze_Data --> Generate_Output[Generate Output];
-    Generate_Output --> Display_Output[/Display Output/];
-    Display_Output --> End([End]);
-    Error_Message --> End;
-```
-
 #### Behavior
 
 ```mermaid
----
-title: Sample State Diagram Boggle Game
----
 stateDiagram
     [*] --> Ready
     Ready --> Game : Start Game
@@ -137,34 +114,12 @@ stateDiagram
     Game --> Game : Make A Game Action
     Game --> Results : End A Game
     Results --> Ready : Return To Menu
-    User: --> Profile : View Profile
+    User --> Profile : View Profile
     User --> History : View User History
     User --> Ready : Return To Main Menu
-    Profile: --> User : Return To User Menu
+    Profile --> User : Return To User Menu
     History --> User : Return To User Menu
     HowToPlay --> Ready :Return To Main Menu
-```
-
-#### Sequence Diagram
-
-```mermaid
-sequenceDiagram
-
-participant ReactFrontend
-participant DjangoBackend
-participant MySQLDatabase
-
-ReactFrontend ->> DjangoBackend: HTTP Request (e.g., GET /api/data)
-activate DjangoBackend
-
-DjangoBackend ->> MySQLDatabase: Query (e.g., SELECT * FROM data_table)
-activate MySQLDatabase
-
-MySQLDatabase -->> DjangoBackend: Result Set
-deactivate MySQLDatabase
-
-DjangoBackend -->> ReactFrontend: JSON Response
-deactivate DjangoBackend
 ```
 
 ### Standards & Conventions
