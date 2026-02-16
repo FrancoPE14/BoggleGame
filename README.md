@@ -32,6 +32,9 @@ end
 	
 subgraph Database
 	C[(MySQL)]
+
+A <-->|"REST API"| B
+B <-->C
 end
 ```
 
