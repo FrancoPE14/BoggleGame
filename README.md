@@ -1,36 +1,26 @@
-# Specification Document
-
-Please fill out this document to reflect your team's project. This is a living document and will need to be updated regularly. You may also remove any section to its own document (e.g. a separate standards and conventions document), however you must keep the header and provide a link to that other document under the header.
-
-Also, be sure to check out the Wiki for information on how to maintain your team's requirements.
-
 ## TeamName
-
 <!--The name of your team.-->
-
+We are the CS-506 Anteaters
 ### Project Abstract
 
 <!--A one paragraph summary of what the software will do.-->
 
-This is an example paragraph written in markdown. You can use *italics*, **bold**, and other formatting options. You can also <u>use inline html</u> to format your text. The example sections included in this document are not necessarily all the sections you will want, and it is possible that you won't use all the one's provided. It is your responsibility to create a document that adequately conveys all the information about your project specifications and requirements.
+This project looks to implement the 1973 board game *Boggle* in an online, multiplayer format. In addition to implementing all of the expected game mechanics, we seek to include modern amenities common to online games, including online matchmaking, seeded *Boggle* boards, and user accounts, including score tracking and win rates.
 
-Please view this file's source to see `<!--comments-->` with guidance on how you might use the different sections of this document. 
+<a href=https://en.wikipedia.org/wiki/Boggle>*(From Wikipedia)*</a>
 
 ### Customer
 
 <!--A brief description of the customer for this software, both in general (the population who might eventually use such a system) and specifically for this document (the customer(s) who informed this document). Every project will have a customer from the CS506 instructional staff. Requirements should not be derived simply from discussion among team members. Ideally your customer should not only talk to you about requirements but also be excited later in the semester to use the system.-->
+Customer research has not yet been conducted. The target audience are *Boggle* players who seek a modern, online version of the traditional board game.
 
 ### Specification
 
-<!--A detailed specification of the system. UML, or other diagrams, such as finite automata, or other appropriate specification formalisms, are encouraged over natural language.-->
-
-<!--Include sections, for example, illustrating the database architecture (with, for example, an ERD).-->
-
-<!--Included below are some sample diagrams, including some example tech stack diagrams.-->
+WIP
 
 #### Technology Stack
 
-Here are some sample technology stacks that you can use for inspiration:
+<!--Here are some sample technology stacks that you can use for inspiration:
 
 ```mermaid
 flowchart RL
@@ -45,11 +35,9 @@ end
 subgraph Database
 	C[(MySQL)]
 end
+-->
 
-A <-->|"REST API"| B
-B <-->C
-```
-
+WIP
 
 
 #### Database
@@ -139,16 +127,22 @@ graph TD;
 
 ```mermaid
 ---
-title: Sample State Diagram For Coffee Application
+title: Sample State Diagram Boggle Game
 ---
 stateDiagram
     [*] --> Ready
-    Ready --> Brewing : Start Brewing
-    Brewing --> Ready : Brew Complete
-    Brewing --> WaterLowError : Water Low
-    WaterLowError --> Ready : Refill Water
-    Brewing --> BeansLowError : Beans Low
-    BeansLowError --> Ready : Refill Beans
+    Ready --> Game : Start Game
+    Ready --> User : Check User Profile
+    Ready --> HowToPlay : View Rules
+    Game --> Game : Make A Game Action
+    Game --> Results : End A Game
+    Results --> Ready : Return To Menu
+    User: --> Profile : View Profile
+    User --> History : View User History
+    User --> Ready : Return To Main Menu
+    Profile: --> User : Return To User Menu
+    History --> User : Return To User Menu
+    HowToPlay --> Ready :Return To Main Menu
 ```
 
 #### Sequence Diagram
