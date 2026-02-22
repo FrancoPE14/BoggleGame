@@ -1,13 +1,14 @@
 services:
   mysql:
     image: mysql:8.0
+    container_name: boggle_mysql
     env_file:
       - .env
     ports:
       - "3306:3306"
     restart: unless-stopped
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql # bind mount
     networks:
       - backend
 
@@ -37,9 +38,6 @@ services:
     restart: unless-stopped
     networks:
       - frontend
-
-volumes:
-  mysql_data:
 
 networks:
   backend:
