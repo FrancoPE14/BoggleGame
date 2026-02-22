@@ -1,8 +1,12 @@
 "use client";
 
-export default function LetterButton() {
+type LetterButtonProps = {
+  letter: string;
+};
+
+export default function LetterButton({ letter }: LetterButtonProps) {
   const handleClick = () => {
-    console.log("Clicked");
+    console.log("Clicked:", letter);
   };
 
   return (
@@ -10,17 +14,17 @@ export default function LetterButton() {
       onClick={handleClick}
       className="
         inline-flex items-center justify-center
-        rounded-lg px-5 py-2.5
-        text-sm font-semibold
-        text-white
-        bg-blue-600
-        hover:bg-blue-700
-        focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
-        disabled:bg-blue-400 disabled:cursor-not-allowed
+        rounded-lg
+        w-full h-full
+        text-xl font-bold
+        text-gray-700
+        bg-amber-200
+        hover:bg-amber-100
+        select-none
         transition-colors duration-200
       "
     >
-      Click me
+      {letter}
     </button>
   );
 }
