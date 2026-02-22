@@ -1,5 +1,3 @@
-package temp_dictionary;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -13,12 +11,34 @@ import static org.junit.jupiter.api.Assertions.*;
 class DictionaryTest {
 
     private Dictionary dict;
-
+/*
     @BeforeEach
     void setUp() {
         dict = new Dictionary();
         dict.addWord("APPLE");
         dict.addWord("DOG");
+    }
+*/
+    @BeforeEach
+    void setUp() {
+        dict = new Dictionary();
+
+
+        System.gc();
+        long before = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+
+        // data loading
+        long startTime = System.currentTimeMillis();
+        dict.initialize("temp_dictionary/dictionary.txt", false);
+        long endTime = System.currentTimeMillis();
+
+        // memory after loading
+        long after = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+
+        // result (MB)
+        System.out.println(">>> [REPORT] Data Fetching Performance:");
+        System.out.println(" - Time Taken: " + (endTime - startTime) + "ms");
+        System.out.println(" - Memory Used: " + (after - before) / (1024 * 1024) + " MB");
     }
 
     @Test
@@ -57,7 +77,7 @@ class DictionaryTest {
     void testNonExistingWords() {
         System.out.println(">>> CRITICAL PATH: False Positive Verification");
 
-        String[] invalidWords = {"BANANA", "XYZ", "BOGGLER", "AAAAA"};
+        String[] invalidWords = {"BANANAA", "XYZ", "BOGGLERRR", "AAAAA"};
         for (String word : invalidWords) {
             boolean actual = dict.contains(word);
             // We expect false because these words were never added.
@@ -86,5 +106,14 @@ class DictionaryTest {
             System.out.println(" [RESULT] FAILED: Remote API integration is a placeholder only.");
             fail("Acceptance Criteria Failure: API fetching is NOT implemented. Expected dictionary to be populated.");
         }
+    }
+
+    @Test
+    @DisplayName("Large Scale Test: Prefix validation with 100k+ words")
+    void testLargeScalePrefix() {
+        // dictionary.txt에 있을 법한 단어들의 접두사로 테스트
+        assertTrue(dict.isPrefix("APP"), "Should find prefix 'APP' in 100k words");
+        assertTrue(dict.isPrefix("BOG"), "Should find prefix 'BOG' in 100k words");
+        assertFalse(dict.isPrefix("ZZZXXX"), "Should not find impossible prefix");
     }
 }

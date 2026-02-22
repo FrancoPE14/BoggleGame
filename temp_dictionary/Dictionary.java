@@ -1,4 +1,4 @@
-package temp_dictionary;
+
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -131,6 +131,28 @@ public class Dictionary {
             }
         }
         return current;
+    }
+
+    /**
+     * Checks if there is any word in the trie that starts with the given prefix.
+     * Essential for pruning DFS search paths in Boggle.
+     */
+    public boolean isPrefix(String prefix) {
+        if (prefix == null || prefix.isEmpty()) return false;
+
+        String upper = prefix.toUpperCase();
+        TrieNode curr = root;
+
+        for (int i = 0; i < upper.length(); i++) {
+            char c = upper.charAt(i);
+            // If the path is broken, no word with this prefix exists
+            if (curr.children.get(c) == null) {
+                return false;
+            }
+            curr = curr.children.get(c);
+        }
+        // If we reached here, the path exists!
+        return true;
     }
 
     /**
