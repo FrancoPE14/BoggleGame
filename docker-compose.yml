@@ -1,0 +1,14 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: boggle_mysql
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
