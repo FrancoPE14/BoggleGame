@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import BoggleBoard from "./components/boggle-board";
 
 export default function Home() {
@@ -11,7 +12,17 @@ export default function Home() {
           height={100}
           alt="Logo Image"
         ></Image>
+
         <BoggleBoard />
+
+        <div className="mt-6">
+          <Link
+            href="/rules"
+            className="inline-block rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+          >
+            Information &amp; Rules
+          </Link>
+        </div>
       </main>
     </div>
   );
