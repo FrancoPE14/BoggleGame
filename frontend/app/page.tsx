@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import BoggleBoard from "./components/boggle-board";
+import WordInput from "./components/word-input";
 
 export default function Home() {
   return (
@@ -14,6 +15,8 @@ export default function Home() {
         ></Image>
 
         <BoggleBoard />
+
+        <WordInput />
 
         <div className="mt-6">
           <Link
