@@ -2,16 +2,23 @@
 
 type LetterButtonProps = {
   letter: string;
+  position: [number, number];
+  setCurrentButton: (r: number, c: number, l: string) => void;
 };
 
-export default function LetterButton({ letter }: LetterButtonProps) {
-  const handleClick = () => {
-    console.log("Clicked:", letter);
+export default function LetterButton({
+  letter,
+  position,
+  setCurrentButton,
+}: LetterButtonProps) {
+  const handleMouseEnter = () => {
+    setCurrentButton(position[0], position[1], letter);
   };
 
   return (
     <button
-      onClick={handleClick}
+      onClick={handleMouseEnter}
+      onMouseEnter={handleMouseEnter}
       className="
         inline-flex items-center justify-center
         rounded-lg
