@@ -33,61 +33,85 @@ export default function Page() {
             });
     }, []);
 
-    return (
-        <div className="min-h-screen bg-zinc-100 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 flex items-center justify-center px-4">
-            <div
-                className="w-full max-w-md rounded-xl border border-zinc-300 bg-white p-8 shadow-md dark:border-zinc-700 dark:bg-zinc-900">
+    // Test (uncomment this and comment out the useEffect() up there)
+    // useEffect(() => {
+    //     setPlayers([
+    //         { user_name: "Apple", highest_score: 4820 },
+    //         { user_name: "Banana", highest_score: 4100 },
+    //         { user_name: "Lemon", highest_score: 3750 },
+    //     ]);
+    //     setLoading(false);
+    // }, []);
 
-                <h1 className="text-3xl font-bold mb-6 text-center text-black">Leaderboard</h1>
+    return (
+        // improve UI layout design using ChatGPT
+        <div className="container py-5">
+            <div
+                className="shadow-lg mx-auto"
+                style={{
+                    maxWidth: "600px",
+                    backgroundColor: "#ffffff",
+                    borderRadius: "16px",
+                    padding: "2rem",
+                }}
+            >
+                <h1 className="text-center mb-4" style={{ color: "#5a4a00" }}>
+                    Leaderboard
+                </h1>
 
                 {loading && (
-                    <p className="text-center text-zinc-500 dark:text-zinc-400">
-                        Loading scores...
-                    </p>
+                    <p className="text-center text-muted">Loading scores...</p>
                 )}
 
                 {error && (
-                    <p className="text-center text-red-500">{error}</p>
+                    <p className="text-center text-danger">{error}</p>
                 )}
 
                 {!loading && !error && players.length === 0 && (
-                    <p className="text-center text-zinc-500 dark:text-zinc-400 py-8">
+                    <p className="text-center text-muted">
                         No scores yet. Be the first to play!
                     </p>
                 )}
 
                 {!loading && !error && players.length > 0 && (
-                    <table className="w-full text-left text-sm mb-8">
+                    <table className="table">
                         <thead>
-                        <tr className="border-b border-zinc-200 dark:border-zinc-700">
-                            <th className="pb-2 pr-4 font-semibold text-zinc-500 dark:text-zinc-400">Rank</th>
-                            <th className="pb-2 pr-4 font-semibold text-zinc-500 dark:text-zinc-400">Player</th>
-                            <th className="pb-2 text-right font-semibold text-zinc-500 dark:text-zinc-400">Highest
-                                Score
-                            </th>
+                        <tr style={{ borderBottom: "2px solid #f3e7b3" }}>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th className="text-end">Highest Score</th>
                         </tr>
                         </thead>
                         <tbody>
                         {players.map((player, index) => (
-                            <tr key={player.user_name} className="border-b border-zinc-100 dark:border-zinc-800">
-                                <td className="py-3 pr-4">{index + 1}</td>
-                                <td className="py-3 pr-4 font-medium">{player.user_name}</td>
-                                <td className="py-3 text-right font-bold">{player.highest_score.toLocaleString()}</td>
+                            <tr key={player.user_name}>
+                                <td>{index + 1}</td>
+                                <td>{player.user_name}</td>
+                                <td className="text-end fw-bold">
+                                    {player.highest_score.toLocaleString()}
+                                </td>
                             </tr>
                         ))}
                         </tbody>
                     </table>
                 )}
 
-                <div className="flex justify-center mt-6">
+                <div className="text-center mt-4">
                     <Link
                         href="/"
-                        className="inline-block rounded-md border border-zinc-300 bg-zinc-100 px-6 py-2 text-sm font-medium hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+                        style={{
+                            backgroundColor: "#fce38a",
+                            padding: "0.6rem 1.5rem",
+                            borderRadius: "8px",
+                            color: "#5a4a00",
+                            fontWeight: 600,
+                            textDecoration: "none",
+                            display: "inline-block",
+                        }}
                     >
                         Back to Menu
                     </Link>
                 </div>
-
             </div>
         </div>
     );
