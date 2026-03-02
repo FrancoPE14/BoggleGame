@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS boggle;
 USE boggle;
 
-CREATE TABLE User (
+CREATE TABLE user (
     user_name VARCHAR(50) NOT NULL,
     password VARCHAR(255) NOT NULL,
     matches_won INT DEFAULT 0,

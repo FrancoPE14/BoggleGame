@@ -1,7 +1,7 @@
 package com.anteaters.boggle.controller;
 
 import com.anteaters.boggle.service.UserRegulationService;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
@@ -13,6 +13,10 @@ import java.util.Map;
 public class UserVerificationController{
     private final UserRegulationService userService;
 
+    public UserVerificationController(UserRegulationService userService){
+        this.userService = userService;
+    }
+
     /**
      * Create a new user accout
      *
@@ -22,9 +26,13 @@ public class UserVerificationController{
      * @param password password of the new user
      * @return JSON containing registery result info
      */
-    @GetMapping("/api/register")
+    @PostMapping("/api/register")
     public Map<String, Object> createAccount(@RequestParam String username, @RequestParam String password){
-
+        boolean status = userService.createNewAccount(username, password);
+        return Map.of(
+            "username", username,
+            "status", status
+        );
     }
 
     /**
@@ -36,8 +44,12 @@ public class UserVerificationController{
      * @param password password of the user who wants login
      * @return JSON containing login result info
      */
-    @GetMapping("/api/login")
+    @PostMapping("/api/login")
     public Map<String, Object> login(@RequestParam String username, @RequestParam String password){
-
+        boolean status = userService.login(username, password);
+        return Map.of(
+                "username", username,
+                "status", status
+        );
     }
 }

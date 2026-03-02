@@ -4,18 +4,30 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 
 /**
  * Each instance of this should corresponds to an entry in the User table of the database
  */
 @Entity
-@Table(name = "User")
+@Table(name = "user")
 public class User{
     @Id
+    @Column(name = "user_name")
     private String username;
     private String password;
+    @Column(name = "matches_won")
     private int matchesWon;
+    @Column(name = "highest_score")
     private int highScore;
+
+    /**
+     * The default constructor, Spring Boot will use this when they read entries from db and fill the private
+     * fields automatically
+     */
+    public User(){
+    }
 
     /**
      * Contructor for the user entity

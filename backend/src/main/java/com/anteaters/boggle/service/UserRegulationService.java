@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import com.anteaters.boggle.repository.UserRepository;
 import com.anteaters.boggle.entity.User;
 import java.util.ArrayList;
+import java.util.Optional;
 
 /**
  * This class provide user authentication and user registeration services
@@ -11,28 +12,32 @@ import java.util.ArrayList;
 @Service
 public class UserRegulationService{
     private final UserRepository repo;
-    private final ArrayList<User> loginUsers;
+    private final ArrayList<User> loginUsers; // temporary method to implement the login mechanism, should change in futrue
 
-    public UserRegulationService(UserRepository repo, ArrayList<User> loginUsers){
+    public UserRegulationService(UserRepository repo){
         this.repo = repo;
-        this.loginUsers = loginUsers;
+        this.loginUsers = new ArrayList<User>();
     }
 
     /**
-     * Checks if this user exists in our database, will
+     * Try to log the user in by verifying username and password and keep them in an ArrayList of login users
      *
      * @param username username of the current user
      * @param password the unhashed password
      * @return true if and only if there is a user with the exact username and password
      */
-    public boolean verifyLoginInfo(String username, String password){
+    public boolean login(String username, String password){
         Optional<User> curUser = repo.findById(username);
         if(curUser.isEmpty()){ // do not find username
             return false;
         }
         String realPwd = curUser.get().getPassword();
         String hashedPwd = hash(password); // insecure, should improve in the future by utlizing Spring Security
-        return realPwd.equals(hashedPwd);
+        if(realPwd.equals(hashedPwd)==false){
+            return false;
+        }
+        loginUsers.add(curUser.get());
+        return true;
     }
 
     /**
