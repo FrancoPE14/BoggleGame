@@ -35,6 +35,7 @@ const Navigation = () => {
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="ms-auto">
+                    <Nav.Link href="/leaderboard">Leaderboard</Nav.Link>
                     <NavDropdown
                         title="Login"
                         id="login-dropdown"
@@ -50,7 +51,7 @@ const Navigation = () => {
                                     value={username}
                                     onChange= {(e) => setUsername(e.target.value)}
                                 />
-                            
+
                             </Form.Group>
 
                             <Form.Group className="mb-3">
