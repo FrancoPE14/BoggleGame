@@ -14,6 +14,10 @@ public class UserRegulationService{
     private final UserRepository repo;
     private final ArrayList<User> loginUsers; // temporary method to implement the login mechanism, should change in futrue
 
+    /**
+     * Constructor for UserRegulationService
+     * @param repo auto-created by Sprint Boot
+     */
     public UserRegulationService(UserRepository repo){
         this.repo = repo;
         this.loginUsers = new ArrayList<User>();
