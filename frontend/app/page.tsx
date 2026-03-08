@@ -5,9 +5,11 @@ import { useState } from "react";
 import Timer from "./components/timer";
 import BoggleBoard from "./components/boggle-board";
 import WordInput from "./components/word-input";
+import useWordVerification from "./components/use-word-verification";
 
 export default function Home() {
   const [gameActive, setGameActive] = useState(false);
+  const { submittedWords, verifyWord, loading } = useWordVerification();
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       onMouseUp={}
@@ -21,7 +23,7 @@ export default function Home() {
         ></Image>
 
         <div className={`relative ${!gameActive ? "opacity-40" : ""}`}>
-          <BoggleBoard/>
+          <BoggleBoard submittedWords={submittedWords} verifyWord={verifyWord} />
           {!gameActive && (
               <div className="absolute inset-0 cursor-not-allowed"/>
           )}
@@ -33,9 +35,8 @@ export default function Home() {
         />
 
         <div className={`relative ${!gameActive ? "opacity-40 pointer-events-none" : ""}`}>
-          <WordInput/>
+          <WordInput submittedWords={submittedWords} verifyWord={verifyWord} loading={loading} />
         </div>
-
         <div className="mt-6">
           <Link
               href="/rules"

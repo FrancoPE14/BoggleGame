@@ -1,17 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
+import { SubmittedWord } from "./use-word-verification";
 
-type SubmittedWord = {
-    word: string;
-    valid: boolean;
+type WordInputProps = {
+    submittedWords: SubmittedWord[];
+    verifyWord: (word: string) => Promise<boolean>;
+    loading: boolean;
 };
 
-export default function WordInput() {
+export default function WordInput({ submittedWords, verifyWord, loading }: WordInputProps) {
     const [input, setInput] = useState("");
-    const [submittedWords, setSubmittedWords] = useState<SubmittedWord[]>([]);
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async () => {
         const trimmed = input.trim().toUpperCase();
@@ -32,24 +32,8 @@ export default function WordInput() {
         }
 
         setError("");
-        setLoading(true);
-
-        try {
-            const res = await fetch(
-                `http://localhost:8080/api/verify?word=${encodeURIComponent(trimmed)}`
-            );
-            const data = await res.json();
-
-            setSubmittedWords((prev) => [
-                { word: trimmed, valid: data.valid },
-                ...prev,
-            ]);
-        } catch {
-            setError("Could not reach the server. Is the backend running?");
-        } finally {
-            setLoading(false);
-            setInput("");
-        }
+        setInput("");
+        await verifyWord(trimmed);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
