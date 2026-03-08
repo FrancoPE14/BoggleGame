@@ -3,6 +3,7 @@ package com.anteaters.boggle.service;
 import com.anteaters.boggle.entity.User;
 import com.anteaters.boggle.service.ScoreTracker;
 import com.anteaters.boggle.service.ScoreCalculator;
+import com.anteaters.boggle.repository.UserRepository;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -19,9 +20,13 @@ public class Player{
      * @param scoreCalc used to calculate scores for players
      */
     public Player(User user, ScoreCalculator scoreCalc){
-        if(user.getUsername()==null || user.getUsername().equals("")){
-            throw IllegalArgumentException("Must associate player instance with a valid user with username.");
+        if(user==null || user.getUsername()==null || user.getUsername().equals("")){
+            throw new IllegalArgumentException("Must associate player instance with a valid user with username.");
         }
+        if(scoreCalc==null){
+            throw new IllegalArgumentException("ScoreCalculator uninitialized.");
+        }
+        this.user = user;
         tracker = new ScoreTracker();
         this.scoreCalc = scoreCalc;
     }
@@ -34,10 +39,26 @@ public class Player{
     }
 
     /**
+     * Update the highScore field of the user only when the new score is higher
+     */
+    public void updateHighScore(){
+        user.updateHighScore(tracker.getScore());
+    }
+
+    /**
+     * Flush all changes to the user to the database, should call updateHighScore before this
+     *
+     * @param repo the module that manages the database
+     */
+    public void flushToDB(UserRepository repo){
+        repo.save(user);
+    }
+
+    /**
      * @return the current score of this player
      */
     public int getScore(){
-        return tracker.getScore;
+        return tracker.getScore();
     }
 
     /**
