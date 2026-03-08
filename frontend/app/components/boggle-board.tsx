@@ -1,6 +1,9 @@
 "use client";
+
 import LetterButton from "./letter-button";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import { SubmittedWord } from "./use-word-verification";
+
 const BOARD_SIZE = 5;
 
 const board = [
@@ -11,91 +14,78 @@ const board = [
   ["B", "O", "G", "G", "L"], // 5
 ];
 
-let currentPosition = [-1, -1];
-let currentLetter = "";
-const visited = new Set<string>();
-let mouseDown = false;
+type BoggleBoardProps = {
+  submittedWords: SubmittedWord[];
+  verifyWord: (word: string) => Promise<boolean>;
+};
 
-export default function BoggleBoard() {
-  const [inputWord, setInputWord] = useState(""); // The string player is creating with board
+export default function BoggleBoard({ submittedWords, verifyWord }: BoggleBoardProps) {
+  const [inputWord, setInputWord] = useState("");
+  const [highlightedTiles, setHighlightedTiles] = useState<Set<string>>(new Set());
 
-  // Start counting char
+  const currentPositionRef = useRef<number[]>([-1, -1]);
+  const currentLetterRef = useRef("");
+  const visitedRef = useRef(new Set<string>());
+  const mouseDownRef = useRef(false);
+  const wordRef = useRef("");
+
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
-    mouseDown = true;
-    addCurrentletter();
+    mouseDownRef.current = true;
+    addCurrentLetter();
   };
 
-  // Verify current input word and reset
   const handleMouseUp = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    // Clear curr pos and visited set
-    currentPosition[0] = -1;
-    currentPosition[1] = -1;
-    visited.clear();
+    const formedWord = wordRef.current;
 
-    // reset word input
+    if (formedWord.length >= 3 && !submittedWords.some((w) => w.word === formedWord)) {
+      verifyWord(formedWord);
+    }
+
+    currentPositionRef.current = [-1, -1];
+    visitedRef.current.clear();
+    mouseDownRef.current = false;
     setInputWord("");
-
-    mouseDown = false;
+    wordRef.current = "";
+    setHighlightedTiles(new Set());
   };
 
-  // Set the current button to the one mouse is over last
   const setCurrentButton = (row: number, col: number, letter: string) => {
-    currentLetter = letter;
-    if (currentPosition[0] === -1 && currentPosition[1] === -1) {
-      currentPosition[0] = row;
-      currentPosition[1] = col;
-    }
-    // not adjacent row
-    else if (row > currentPosition[0] + 1 || row < currentPosition[0] - 1) {
-      return;
-    }
-    // not adjacent col
-    else if (col > currentPosition[1] + 1 || col < currentPosition[1] - 1) {
-      return;
-    }
-    // valid position
-    else {
-      currentPosition[0] = row;
-      currentPosition[1] = col;
-    }
-    console.log(
-      "Letter: " +
-        currentLetter +
-        " Pos: " +
-        currentPosition[0] +
-        ", " +
-        currentPosition[1],
-    );
-    if (!mouseDown) return;
+    currentLetterRef.current = letter;
+    const pos = currentPositionRef.current;
 
-    addCurrentletter();
+    if (pos[0] === -1 && pos[1] === -1) {
+      currentPositionRef.current = [row, col];
+    } else if (row > pos[0] + 1 || row < pos[0] - 1) {
+      return;
+    } else if (col > pos[1] + 1 || col < pos[1] - 1) {
+      return;
+    } else {
+      currentPositionRef.current = [row, col];
+    }
+
+    if (!mouseDownRef.current) return;
+
+    addCurrentLetter();
   };
 
-  // Add letter to input string
-  const addCurrentletter = () => {
-    if (!mouseDown) return;
+  const addCurrentLetter = () => {
+    if (!mouseDownRef.current) return;
 
-    const row = currentPosition[0];
-    const col = currentPosition[1];
+    const pos = currentPositionRef.current;
+    const row = pos[0];
+    const col = pos[1];
     const key = `${row},${col}`;
 
-    if (visited.has(key)) return;
+    if (visitedRef.current.has(key)) return;
 
-    if (currentPosition[0] === -1 && currentPosition[1] === -1) {
-      currentPosition[0] = row;
-      currentPosition[1] = col;
-      visited.add(key);
-      setInputWord((prev) => prev + currentLetter);
-      return;
-    }
-
-    currentPosition[0] = row;
-    currentPosition[1] = col;
-    visited.add(key);
-    setInputWord((prev) => prev + currentLetter);
+    visitedRef.current.add(key);
+    const letter = currentLetterRef.current;
+    wordRef.current = wordRef.current + letter;
+    setInputWord((prev) => prev + letter);
+    setHighlightedTiles(new Set(visitedRef.current));
   };
 
   return (
@@ -127,10 +117,11 @@ export default function BoggleBoard() {
         {board.map((rows, row) =>
           rows.map((letter, col) => (
             <LetterButton
-              key={row.toString() + " " + col.toString()}
+              key={`${row}-${col}`}
               letter={letter}
               position={[row, col]}
               setCurrentButton={(r, c, l) => setCurrentButton(r, c, l)}
+              isHighlighted={highlightedTiles.has(`${row},${col}`)}
             />
           )),
         )}
