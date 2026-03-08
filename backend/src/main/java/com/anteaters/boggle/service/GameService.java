@@ -17,7 +17,7 @@ public class GameService{
     private final UserRepository repo;
     private final UserRegulationService userRegulation;
     private final ScoreCalculator calc;
-    private final ArrayList<Player> players;
+    private ArrayList<Player> players;
     private BoggleBoard board;
 
     /**
@@ -39,10 +39,10 @@ public class GameService{
      * @return whether the game session is successfully started
      */
     public boolean startGame(){
-        if(!players.isEmpty()) {
+        if(players.isEmpty() || board!=null) {
             return false;
         }
-        // create gameboard logic
+        // TODO: create gameboard logic
         return true;
     }
 
@@ -53,13 +53,34 @@ public class GameService{
      * @return whether the player is successfully added
      */
     public boolean addPlayer(String username){
+        if(board!=null){ // cannot add player once game started
+            return false;
+        }
         User user = userRegulation.getUser(username);
         if(user==null){
+            return false;
+        }
+        if(!isAdded(username)){ // same player cannot be added twice
             return false;
         }
         Player player = new Player(user, calc);
         players.add(player);
         return true;
+    }
+
+    /**
+     * Linear search on whether the user already exists in the player list
+     *
+     * @param username the user to be checked
+     * @return whether the player is already added to the game
+     */
+    public boolean isAdded(String username){
+        for(Player player : players){
+            if(player.getUsername().equals(username)){
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -75,6 +96,8 @@ public class GameService{
             player.updateHighScore();
             player.flushToDB(repo);
         }
+        players = new ArrayList<Player>();
+        board = null;
         return true;
     }
 }
