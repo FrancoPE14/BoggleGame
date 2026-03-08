@@ -1,12 +1,16 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import BoggleBoard from "./components/boggle-board";
 import WordInput from "./components/word-input";
+import useWordVerification from "./components/use-word-verification";
 
 export default function Home() {
+  const { submittedWords, verifyWord, loading } = useWordVerification();
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      onMouseUp={}
       <main className="flex min-h-screen w-full max-w-3xl mx-auto flex-col items-center justify-center py-32 px-16 bg-white dark:bg-black">
         <Image
           src="/LOGO.png"
@@ -15,9 +19,9 @@ export default function Home() {
           alt="Logo Image"
         ></Image>
 
-        <BoggleBoard />
+        <BoggleBoard submittedWords={submittedWords} verifyWord={verifyWord} />
 
-        <WordInput />
+        <WordInput submittedWords={submittedWords} verifyWord={verifyWord} loading={loading} />
 
         <div className="mt-6">
           <Link
