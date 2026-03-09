@@ -1,12 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useState } from "react";
 import BoggleBoard from "../components/boggle-board";
 import WordInput from "../components/word-input";
+import Timer from "../components/timer";
 import useWordVerification from "../components/use-word-verification";
 
 export default function Home() {
+  const [gameActive, setGameActive] = useState(false);
   const { submittedWords, verifyWord, loading } = useWordVerification();
 
   return (
@@ -18,6 +20,11 @@ export default function Home() {
           height={100}
           alt="Logo Image"
         ></Image>
+
+        <Timer
+          onGameStart={() => setGameActive(true)}
+          onGameEnd={() => setGameActive(false)}
+        />
 
         <BoggleBoard submittedWords={submittedWords} verifyWord={verifyWord} />
 
