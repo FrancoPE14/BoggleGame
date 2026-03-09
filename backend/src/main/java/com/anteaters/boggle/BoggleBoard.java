@@ -1,6 +1,5 @@
 package main.java.com.anteaters.boggle;
 import java.util.*;
-import java.nio.file.*;
 
 public class BoggleBoard {
 
@@ -186,4 +185,5 @@ public class BoggleBoard {
             return this.visibleFace;
         }
     }
+
 }
