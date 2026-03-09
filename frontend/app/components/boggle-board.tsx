@@ -19,9 +19,14 @@ type BoggleBoardProps = {
   verifyWord: (word: string) => Promise<boolean>;
 };
 
-export default function BoggleBoard({ submittedWords, verifyWord }: BoggleBoardProps) {
+export default function BoggleBoard({
+  submittedWords,
+  verifyWord,
+}: BoggleBoardProps) {
   const [inputWord, setInputWord] = useState("");
-  const [highlightedTiles, setHighlightedTiles] = useState<Set<string>>(new Set());
+  const [highlightedTiles, setHighlightedTiles] = useState<Set<string>>(
+    new Set(),
+  );
 
   const currentPositionRef = useRef<number[]>([-1, -1]);
   const currentLetterRef = useRef("");
@@ -35,12 +40,20 @@ export default function BoggleBoard({ submittedWords, verifyWord }: BoggleBoardP
     addCurrentLetter();
   };
 
+  /**
+   * When mouse up, submit potential input string to verify word.
+   * Reset values like input string and visited list.
+   * @param e React.MouseEvent
+   */
   const handleMouseUp = (e: React.MouseEvent) => {
     e.preventDefault();
 
     const formedWord = wordRef.current;
 
-    if (formedWord.length >= 3 && !submittedWords.some((w) => w.word === formedWord)) {
+    if (
+      formedWord.length >= 3 &&
+      !submittedWords.some((w) => w.word === formedWord)
+    ) {
       verifyWord(formedWord);
     }
 
@@ -52,6 +65,15 @@ export default function BoggleBoard({ submittedWords, verifyWord }: BoggleBoardP
     setHighlightedTiles(new Set());
   };
 
+  /**
+   * Updates position and letter mouse is currently hovering over.
+   * If the new position is not adjacent to last selected letter, then return.
+   * If mouse is being held down, then add the letter to the input string.
+   * @param row the row of the hovered letter
+   * @param col the column of the hovered letter
+   * @param letter the string value (A - Z) of the hovered letter-button component
+   * @returns
+   */
   const setCurrentButton = (row: number, col: number, letter: string) => {
     currentLetterRef.current = letter;
     const pos = currentPositionRef.current;
@@ -71,6 +93,11 @@ export default function BoggleBoard({ submittedWords, verifyWord }: BoggleBoardP
     addCurrentLetter();
   };
 
+  /**
+   * Adds current letter to input string.
+   * Highlights letter-button component
+   * @returns
+   */
   const addCurrentLetter = () => {
     if (!mouseDownRef.current) return;
 

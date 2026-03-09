@@ -1,51 +1,49 @@
 "use client";
-import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import Timer from "./components/timer";
-import BoggleBoard from "./components/boggle-board";
-import WordInput from "./components/word-input";
-import useWordVerification from "./components/use-word-verification";
+import { Button, Container, Col, Row, Image } from "react-bootstrap";
 
 export default function Home() {
-  const [gameActive, setGameActive] = useState(false);
-  const { submittedWords, verifyWord, loading } = useWordVerification();
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      onMouseUp={}
-      <main
-          className="flex min-h-screen w-full max-w-3xl mx-auto flex-col items-center justify-center py-32 px-16 bg-white dark:bg-black">
-        <Image
-            src="/LOGO.png"
-            width={100}
-            height={100}
-            alt="Logo Image"
-        ></Image>
+    <div className="flex min-h-screen min-w-screen w-full max-w-3xl mx-auto flex-col items-center justify-center bg-amber-100 dark:bg-amber-100">
+      <Image src="/LOGO.png" width={200} height={200} alt="Logo Image"></Image>
 
-        <div className={`relative ${!gameActive ? "opacity-40" : ""}`}>
-          <BoggleBoard submittedWords={submittedWords} verifyWord={verifyWord} />
-          {!gameActive && (
-              <div className="absolute inset-0 cursor-not-allowed"/>
-          )}
-        </div>
+      <div>
+        <Button
+          href="/game"
+          variant="outline-dark"
+          size="lg"
+          className="mt-1 mb-1 ms-1 me-1"
+        >
+          Play Solo
+        </Button>
 
-        <Timer
-            onGameStart={() => setGameActive(true)}
-            onGameEnd={() => setGameActive(false)}
-        />
+        <Button
+          href="/game"
+          variant="outline-dark"
+          size="lg"
+          className="mt-1 mb-1 ms-1 me-1"
+        >
+          Play Online
+        </Button>
+      </div>
 
-        <div className={`relative ${!gameActive ? "opacity-40 pointer-events-none" : ""}`}>
-          <WordInput submittedWords={submittedWords} verifyWord={verifyWord} loading={loading} />
-        </div>
-        <div className="mt-6">
-          <Link
-              href="/rules"
-              className="inline-block rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
-          >
-            Information &amp; Rules
-          </Link>
-        </div>
-      </main>
+      <Button
+        href="/leaderboard"
+        variant="outline-dark"
+        size="sm"
+        className="mt-1 mb-1"
+      >
+        Leaderboard
+      </Button>
+
+      <Button
+        href="/rules"
+        variant="outline-dark"
+        size="sm"
+        className="inline-block rounded-md mt-1 mb-1"
+      >
+        Information & Rules
+      </Button>
     </div>
   );
 }
