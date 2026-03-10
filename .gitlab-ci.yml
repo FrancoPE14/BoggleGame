@@ -1,0 +1,17 @@
+stages:
+  - lint
+  - test
+
+lint:
+  stage: lint
+  image: node:20
+  script:
+    - npm ci
+    - npm run lint
+
+unit-test:
+  stage: test
+  image: eclipse-temurin:21
+  script:
+    - cd backend
+    - ./gradlew test
