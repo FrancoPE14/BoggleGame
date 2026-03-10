@@ -13,6 +13,17 @@ lint:
 unit-test:
   stage: test
   image: eclipse-temurin:21
+  services:
+    - mysql:8.0
+  variables:
+    MYSQL_DATABASE: boggle
+    MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+    MYSQL_USER: boggle_user
+    MYSQL_PASSWORD: $MYSQL_PASSWORD
+    SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/boggle
+    SPRING_DATASOURCE_USERNAME: boggle_user
+    SPRING_DATASOURCE_PASSWORD: $SPRING_DATASOURCE_PASSWORD
+    SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
   script:
     - cd backend
     - ./gradlew test
