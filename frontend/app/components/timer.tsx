@@ -15,10 +15,16 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
     const [status, setStatus] = useState<"idle" | "running" | "ended">("running");
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+    /**
+     * Notify parent that game has started on initial mount
+     * */
     useEffect(() => {
         onGameStart?.();
     }, []);
 
+    /**
+     * Clears the active countdown interval if one exists
+     * */
     const clearTimer = () => {
         if (intervalRef.current !== null) {
             clearInterval(intervalRef.current);
@@ -26,12 +32,18 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
         }
     };
 
+    /**
+     * Stops the timer, updates status to ended, and notifies parent
+     * */
     const handleGameEnd = useCallback(() => {
         clearTimer();
         setStatus("ended");
         onGameEnd?.();
     }, [onGameEnd]);
 
+    /**
+     * Starts a 1-second interval countdown when status is "running"
+     * */
     useEffect(() => {
         if (status !== "running") return;
 
@@ -48,6 +60,9 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
         return clearTimer;
     }, [status, handleGameEnd]);
 
+    /**
+     * Resets and restarts the timer from the full duration
+     * */
     const handleStart = () => {
         clearTimer();
         setSecondsLeft(GAME_DURATION_SECONDS);
@@ -55,6 +70,9 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
         onGameStart?.();
     };
 
+    /**
+     * Manually ends the game before time runs out
+     * */
     const handleEnd = () => {
         handleGameEnd();
     };
