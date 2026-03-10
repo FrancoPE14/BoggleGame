@@ -28,11 +28,7 @@ export default function Home() {
 
         <BoggleBoard submittedWords={submittedWords} verifyWord={verifyWord} />
 
-        <WordInput
-          submittedWords={submittedWords}
-          verifyWord={verifyWord}
-          loading={loading}
-        />
+        <WordInput submittedWords={submittedWords} />
       </main>
     </div>
   );
