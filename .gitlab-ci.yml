@@ -6,6 +6,7 @@ lint:
   stage: lint
   image: node:20
   script:
+    - cd frontend
     - npm ci
     - npm run lint
 
