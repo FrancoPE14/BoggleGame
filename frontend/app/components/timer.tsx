@@ -12,9 +12,19 @@ interface TimerProps {
 
 export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
     const [secondsLeft, setSecondsLeft] = useState(GAME_DURATION_SECONDS);
-    const [status, setStatus] = useState<"idle" | "running" | "ended">("idle");
+    const [status, setStatus] = useState<"idle" | "running" | "ended">("running");
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+    /**
+     * Notify parent that game has started on initial mount
+     * */
+    useEffect(() => {
+        onGameStart?.();
+    }, []);
+
+    /**
+     * Clears the active countdown interval if one exists
+     * */
     const clearTimer = () => {
         if (intervalRef.current !== null) {
             clearInterval(intervalRef.current);
@@ -22,12 +32,18 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
         }
     };
 
+    /**
+     * Stops the timer, updates status to ended, and notifies parent
+     * */
     const handleGameEnd = useCallback(() => {
         clearTimer();
         setStatus("ended");
         onGameEnd?.();
     }, [onGameEnd]);
 
+    /**
+     * Starts a 1-second interval countdown when status is "running"
+     * */
     useEffect(() => {
         if (status !== "running") return;
 
@@ -44,6 +60,9 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
         return clearTimer;
     }, [status, handleGameEnd]);
 
+    /**
+     * Resets and restarts the timer from the full duration
+     * */
     const handleStart = () => {
         clearTimer();
         setSecondsLeft(GAME_DURATION_SECONDS);
@@ -51,41 +70,34 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
         onGameStart?.();
     };
 
+    /**
+     * Manually ends the game before time runs out
+     * */
     const handleEnd = () => {
         handleGameEnd();
     };
 
     const minutes = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
     const seconds = String(secondsLeft % 60).padStart(2, "0");
-    const isLowTime = secondsLeft <= 30 && status === "running";
 
     return (
         <>
             <div className="flex items-center gap-4 mt-6">
-                <span
-                    className="font-mono text-2xl font-semibold tabular-nums w-20 text-center text-black dark:text-white">
+                <span className="font-mono text-2xl font-semibold tabular-nums w-20 text-center text-black dark:text-white">
                     {minutes}:{seconds}
                 </span>
 
-                {status === "running" ? (
+                {status === "running" && (
                     <button
                         onClick={handleEnd}
                         className="rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
                     >
                         End
                     </button>
-                ) : (
-                    <button
-                        onClick={handleStart}
-                        disabled={status === "ended"}
-                        className="rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
-                    >
-                        Start
-                    </button>
                 )}
             </div>
 
-            {status === "ended" && <GameOver onPlayAgain={handleStart}/>}
+            {status === "ended" && <GameOver onPlayAgain={handleStart} />}
         </>
     );
 }
