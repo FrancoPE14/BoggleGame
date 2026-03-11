@@ -63,6 +63,36 @@ public class UserRegulationService{
     }
 
     /**
+     * Perform a linear search on the login user ArrayList to check if a user is logged into their account
+     *
+     * @param username the username to be checked
+     * @return whether the user has logged in
+     */
+    public boolean isLoggedIn(String username){
+        for(User user : loginUsers){
+            if(user.getUsername.equals(username)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Perform a linear search to the login user ArrayList to find the user
+     *
+     * @param username the username to be found
+     * @return the User object representing the user if they have logged in, otherwise return null
+     */
+    public User getUser(String username){
+        for(User user : loginUsers){
+            if(user.getUsername.equals(username)){
+                return user;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Currently uses the java default hash function
      *
      * @param str the string to be hashed
