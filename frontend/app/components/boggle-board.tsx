@@ -77,7 +77,9 @@ export default function BoggleBoard({
   const setCurrentButton = (row: number, col: number, letter: string) => {
     currentLetterRef.current = letter;
     const pos = currentPositionRef.current;
+    const key = `${row},${col}`;
 
+    if (visitedRef.current.has(key)) return;
     if (pos[0] === -1 && pos[1] === -1) {
       currentPositionRef.current = [row, col];
     } else if (row > pos[0] + 1 || row < pos[0] - 1) {
