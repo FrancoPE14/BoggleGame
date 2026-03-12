@@ -49,9 +49,9 @@ export default function Register() {
                 <Col xs={12} sm={10} md={8} lg={5}>
                     <Card className="shadow-sm border-0">
                         <Card.Body className="p-4 p-md-5">
-                            <h1 className="h3 mb-1">Login</h1>
+                            <h1 className="h3 mb-1">Register</h1>
                             <p className="text-muted mb-4">
-                                Welcome back. Sign in to continue.
+                                Create a new account.
                             </p>
 
                             <Form onSubmit={onLogin}>

@@ -11,6 +11,7 @@ export default function LoginStatusProvider({
   const [loginStatus, setLoginStatus] = useState<boolean>(false);
   const [storageReady, setStorageReady] = useState(false);
 
+  //On load or refresh, loginStatus will be taken from sessionStorage
   useEffect(() => {
     const stored = window.sessionStorage.getItem('loginStatus');
     let parsedStatus = false;
@@ -23,11 +24,11 @@ export default function LoginStatusProvider({
       }
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoginStatus(parsedStatus);
     setStorageReady(true);
   }, []);
 
+  //After sessi
   useEffect(() => {
     if (!storageReady) return;
     window.sessionStorage.setItem('loginStatus', JSON.stringify(loginStatus));
