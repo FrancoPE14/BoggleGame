@@ -6,7 +6,7 @@ import com.anteaters.boggle.entity.User;
 import com.anteaters.boggle.service.Player;
 import com.anteaters.boggle.service.UserRegulationService;
 import com.anteaters.boggle.service.ScoreCalculator;
-import com.anteaters.boggle.service.BoggleBoard;
+//import com.anteaters.boggle.service.BoggleBoard;
 import java.util.ArrayList;
 
 /**
@@ -18,7 +18,9 @@ public class GameService{
     private final UserRegulationService userRegulation;
     private final ScoreCalculator calc;
     private ArrayList<Player> players;
-    private BoggleBoard board;
+    private int requiredPlayerNum; // number of players required to start a game, default is 1
+    private boolean gameStarted;
+    //private BoggleBoard board;
 
     /**
      * The constructor for GameService
@@ -30,6 +32,8 @@ public class GameService{
         this.userRegulation = userRegulation;
         calc = new ScoreCalculator();
         players = new ArrayList<Player>();
+        gameStarted = false;
+        requiredPlayerNum = 1;
     }
 
     /**
@@ -39,10 +43,10 @@ public class GameService{
      * @return whether the game session is successfully started
      */
     public boolean startGame(){
-        if(players.isEmpty() || board!=null) {
+        if(players.isEmpty()) {
             return false;
         }
-        // TODO: create gameboard logic
+        gameStarted = true;
         return true;
     }
 
@@ -53,7 +57,7 @@ public class GameService{
      * @return whether the player is successfully added
      */
     public boolean addPlayer(String username){
-        if(board!=null){ // cannot add player once game started
+        if(gameStarted){ // cannot add player once game started
             return false;
         }
         User user = userRegulation.getUser(username);
@@ -89,7 +93,7 @@ public class GameService{
      * @return whether the game ends successfully
      */
     public boolean endGame(){
-        if(players.isEmpty()){ // game not started
+        if(!gameStarted){ // game not started
             return false;
         }
         for(Player player : players){
@@ -97,7 +101,16 @@ public class GameService{
             player.flushToDB(repo);
         }
         players = new ArrayList<Player>();
-        board = null;
         return true;
+    }
+
+    /**
+     * Set the required number of players to start the game, only call before the game starts
+     *
+     * @param requiredPlayerNum the number of players to start a game
+     */
+    public void setRequiredPlayerNum(int requiredPlayerNum){
+        // TODO: throw exception when game already started
+        this.requiredPlayerNum = requiredPlayerNum;
     }
 }
