@@ -60,11 +60,7 @@ export default function Home() {
           board={board}
         />
 
-        <WordInput
-          submittedWords={submittedWords}
-          verifyWord={verifyWord}
-          loading={loading}
-        />
+        <WordInput submittedWords={submittedWords} />
       </main>
     </div>
   );

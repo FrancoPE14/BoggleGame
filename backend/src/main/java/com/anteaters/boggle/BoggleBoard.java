@@ -3,7 +3,7 @@ import java.util.*;
 
 public class BoggleBoard {
 
-    int boardSize = 4; //static size for now; resizable boards as enhancement
+    int boardSize = 4; // static size for now; resizable boards later as enhancement
     Dice[][] grid = new Dice[boardSize][boardSize];
     LinkedList<Dice> currentEntry = new LinkedList<>(); // stores the user's current entry as a list of dice
 
@@ -57,7 +57,7 @@ public class BoggleBoard {
      * Method to remove the most recent selection from the current entry. Currently does nothing when called
      * on an empty entry list, but can implement behavior in the future.
      */
-    public void removeEntry(){
+    public void removeLetter(){
         try{
             currentEntry.removeLast();
         } catch (NoSuchElementException e) {
@@ -88,11 +88,30 @@ public class BoggleBoard {
         return entryAsString.toString();
     }
 
-    public void printBoard(){
-        for (int i = 0; i < boardSize; i++){
-            for (int j = 0; j < boardSize; j++){
-                System.out.println(grid[i][j].getVisibleFace() + " ");
+    /**
+     * Method that returns a String array representation of the current board.
+     * @return a String array representation of the current board
+     */
+    public String[][] boardToStringArray(){
+        String[][] stringBoard = new String[boardSize][boardSize];
+
+        for(int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                stringBoard[i][j] = grid[i][j].getVisibleFace();
             }
+        }
+        return stringBoard;
+    }
+
+    /**
+     * Prints a text representation of the boggle board.
+     */
+    public void printBoard(){
+        for (Dice[] row : grid){
+            for (Dice d : row){
+                System.out.printf("%2s ", d.getVisibleFace());
+            }
+            System.out.println();
         }
     }
 
@@ -166,4 +185,5 @@ public class BoggleBoard {
             return this.visibleFace;
         }
     }
+
 }
