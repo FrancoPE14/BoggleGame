@@ -8,10 +8,12 @@ export default function LoginStatusProvider({
 }: {
   children: React.ReactNode;
 }) {
+  //Global login context
   const [loginStatus, setLoginStatus] = useState<boolean>(false);
+  // Prevent writing default state before we finish reading from sessionStorage.
   const [storageReady, setStorageReady] = useState(false);
 
-  //On load or refresh, loginStatus will be taken from sessionStorage
+  //After refresh, load loginStatus
   useEffect(() => {
     const stored = window.sessionStorage.getItem('loginStatus');
     let parsedStatus = false;
@@ -28,7 +30,7 @@ export default function LoginStatusProvider({
     setStorageReady(true);
   }, []);
 
-  //After sessi
+  // Persist state changes only after we have gotten loginStatus from Session Storage
   useEffect(() => {
     if (!storageReady) return;
     window.sessionStorage.setItem('loginStatus', JSON.stringify(loginStatus));

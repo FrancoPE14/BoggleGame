@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 export default function Login() {
 
     const [, setLoginStatus] = useContext(LoginStatusContext);
+    // Keep inputs uncontrolled and read current values only when the form submits.
     const usernameRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
 
@@ -18,20 +19,21 @@ export default function Login() {
         e?.preventDefault();
 
         const username = String(usernameRef?.current?.value ?? "").trim()
-        const password = String(passwordRef?.current?.value ?? "")
+        const password = String(passwordRef?.current?.value ?? "").trim()
 
-        console.log(username)
-
-        if (!username || !password?.trim()) {
+        //Check if valuyes are missing
+        if (!username || !password) {
             alert("You must provide both a username and password!");
             return;
         }
 
+        // Backend login endpoint currently accepts credentials via query params on a POST.
         fetch(`http://localhost:8080/api/login?username=${username}&password=${password}`, {
             method: "POST"
         }).then(res => {
             if (res.status === 200) {
                 alert("You have been successfully logged in!")
+                // Persist auth status so refreshes keep the client-side login context in sync.
                 window.sessionStorage.setItem('loginStatus', JSON.stringify(true));
                 setLoginStatus(true);
                 

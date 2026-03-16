@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   /**
    * Shell for all pages
-   * Each page gets bootstrap stylesheet
+   * {children} represents an arbitrary page, which would have a BoggleNav above it and is wrapped in LoginStatusProvider
    * 
    */
   return (

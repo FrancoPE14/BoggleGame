@@ -10,6 +10,7 @@ export default function Logout() {
 
 
     useEffect(() => {
+        // First flip in-memory auth state; on the next effect pass persist the logged-out state.
         if (loginStatus) {
             setLoginStatus(false);
             return;

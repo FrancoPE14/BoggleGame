@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 export default function Register() {
 
     const [, setLoginStatus] = useContext(LoginStatusContext);
+    // Keep inputs uncontrolled and read current values only when the form submits.
     const usernameRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
 
@@ -22,16 +23,19 @@ export default function Register() {
 
         console.log(username)
 
+        // Short-circuit before calling the API when required credentials are missing.
         if (!username || !password?.trim()) {
             alert("You must provide both a username and password!");
             return;
         }
 
+        // Backend register endpoint currently accepts credentials via query params on a POST.
         fetch(`http://localhost:8080/api/register?username=${username}&password=${password}`, {
             method: "POST"
         }).then(res => {
             if (res.status === 200) {
                 alert("You have been successfully registered!")
+                // Immediately mark the user as logged in after successful registration.
                 setLoginStatus(true);
                 
                 router.push("/")

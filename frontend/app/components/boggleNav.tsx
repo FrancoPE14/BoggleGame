@@ -7,7 +7,8 @@ import LoginStatusContext from './context/loginStatusContext';
 
 export default function BoggleNav() {
 
-const [loginStatus] = useContext(LoginStatusContext);
+  // Read shared auth status so navigation links reflect the current session.
+  const [loginStatus] = useContext(LoginStatusContext);
 
   return (
     <Navbar bg="dark" variant="dark" expand="lg">
@@ -21,6 +22,7 @@ const [loginStatus] = useContext(LoginStatusContext);
             <Nav.Link as={Link} href="/leaderboard">
               Leaderboard
             </Nav.Link>
+            {/* Guests can log in/register; authenticated users get a logout link. */}
             {!loginStatus ? (
               <>
                 <Nav.Link as={Link} href="/auth/login">
