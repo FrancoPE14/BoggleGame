@@ -34,8 +34,9 @@ export default function Home() {
   async function generateBoard() {
     try {
       const res = await fetch("http://localhost:8080/api/generate");
-      const data: { board: string[][] } = await res.json();
-      setBoard(data.board);
+      const b = await res.json();
+      setBoard(b);
+      console.log(b);
     } catch {
       return;
     }
