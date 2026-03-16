@@ -17,6 +17,8 @@ const board = [
 type BoggleBoardProps = {
   submittedWords: SubmittedWord[];
   verifyWord: (word: string) => Promise<boolean>;
+  gameActive: boolean;
+  board: string[][];
 };
 
 export default function BoggleBoard({
