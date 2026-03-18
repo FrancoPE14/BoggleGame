@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import BoggleBoard from "../components/boggle-board";
 import WordInput from "../components/word-input";
+import ScoreDisplay from "../components/score-display";
 import Timer from "../components/timer";
 import useWordVerification from "../components/use-word-verification";
 
@@ -29,6 +30,8 @@ export default function Home() {
         <BoggleBoard submittedWords={submittedWords} verifyWord={verifyWord} />
 
         <WordInput submittedWords={submittedWords} />
+
+        <ScoreDisplay submittedWords={submittedWords} />
       </main>
     </div>
   );
