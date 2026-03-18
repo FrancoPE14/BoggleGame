@@ -9,32 +9,23 @@ export default function LoginStatusProvider({
   children: React.ReactNode;
 }) {
   //Global login context
-  const [loginStatus, setLoginStatus] = useState<boolean>(false);
-  // Prevent writing default state before we finish reading from sessionStorage.
-  const [storageReady, setStorageReady] = useState(false);
+  const [loginStatus, setLoginStatus] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
 
-  //After refresh, load loginStatus
-  useEffect(() => {
     const stored = window.sessionStorage.getItem('loginStatus');
-    let parsedStatus = false;
+    if (!stored) return false;
 
-    if (stored) {
-      try {
-        parsedStatus = JSON.parse(stored) as boolean;
-      } catch {
-        parsedStatus = false;
-      }
+    try {
+      return JSON.parse(stored) as boolean;
+    } catch {
+      return false;
     }
+  });
 
-    setLoginStatus(parsedStatus);
-    setStorageReady(true);
-  }, []);
-
-  // Persist state changes only after we have gotten loginStatus from Session Storage
+  // Persist login state changes to Session Storage.
   useEffect(() => {
-    if (!storageReady) return;
     window.sessionStorage.setItem('loginStatus', JSON.stringify(loginStatus));
-  }, [loginStatus, storageReady]);
+  }, [loginStatus]);
 
   return (
     <LoginStatusContext.Provider value={[loginStatus, setLoginStatus]}>
