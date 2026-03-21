@@ -3,6 +3,7 @@ package com.anteaters.boggle;
 import com.anteaters.boggle.service.UserRegulationService;
 import com.anteaters.boggle.repository.UserRepository;
 import com.anteaters.boggle.entity.User;
+import com.anteaters.boggle.FakeUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for the bcakend UserRegulationService
  * @see UserRegulationService
  */
-@SpringBootTest
 public class UserRegulationServiceTest{
-    @Autowired
     private UserRepository repo;
-    @Autowired
     private UserRegulationService service;
 
     /**
@@ -25,8 +23,8 @@ public class UserRegulationServiceTest{
      */
     @BeforeEach
     void setup(){
-        repo.deleteAll();
-        service.clearAllLogin();
+        UserRepository repo = new FakeUserRepository();
+        service = new UserRegulationService(repo);
     }
 
     /**
@@ -140,7 +138,7 @@ public class UserRegulationServiceTest{
         User user = service.getUser(username);
         assertNotNull(user);
         assertEquals(user.getUsername(), username);
-        assertEquals(user.getPassword(), pwd);
+        assertEquals(user.getPassword(), String.valueOf(pwd.hashCode())); // the password stored in the entity will be hashed
         assertEquals(user.getMatchesWon(), 0);
         assertEquals(user.getHighScore(), 0);
     }
