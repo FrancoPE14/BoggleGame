@@ -19,7 +19,8 @@ export default function Home() {
 
   const [gameActive, setGameActive] = useState(false);
   const [board, setBoard] = useState(defaultBoard);
-  const { submittedWords, verifyWord, loading, resetWords } = useWordVerification();
+  const { submittedWords, verifyWord, loading, resetWords } =
+    useWordVerification();
 
   /**
    * Called when the timer hits 0 or the player clicks End.
@@ -35,6 +36,7 @@ export default function Home() {
    * Shows the word input and resets the submitted word list for a fresh game.
    */
   const handleGameStart = useCallback(() => {
+    generateBoard();
     setGameActive(true);
     resetWords();
   }, [resetWords]);
@@ -69,14 +71,7 @@ export default function Home() {
           alt="Logo Image"
         ></Image>
 
-<<<<<<< frontend/app/game/page.tsx
-        <Timer onGameStart={onGameStart} onGameEnd={onGameEnd} />
-=======
-        <Timer
-          onGameStart={handleGameStart}
-          onGameEnd={handleGameEnd}
-        />
->>>>>>> frontend/app/game/page.tsx
+        <Timer onGameStart={handleGameStart} onGameEnd={handleGameEnd} />
 
         <BoggleBoard
           submittedWords={submittedWords}
@@ -85,9 +80,7 @@ export default function Home() {
           board={board}
         />
 
-        {gameActive && (
-            <WordInput submittedWords={submittedWords} />
-        )}
+        {gameActive && <WordInput submittedWords={submittedWords} />}
       </main>
     </div>
   );
