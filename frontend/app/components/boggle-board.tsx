@@ -6,14 +6,6 @@ import { SubmittedWord } from "./use-word-verification";
 
 const BOARD_SIZE = 5;
 
-const board = [
-  ["T", "E", "S", "T", "S"], // 1
-  ["W", "O", "R", "D", "S"], // 2
-  ["G", "A", "M", "E", "S"], // 3
-  ["P", "L", "A", "Y", "S"], // 4
-  ["B", "O", "G", "G", "L"], // 5
-];
-
 type BoggleBoardProps = {
   submittedWords: SubmittedWord[];
   verifyWord: (word: string) => Promise<boolean>;

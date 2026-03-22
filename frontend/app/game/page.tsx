@@ -6,7 +6,6 @@ import BoggleBoard from "../components/boggle-board";
 import WordInput from "../components/word-input";
 import Timer from "../components/timer";
 import useWordVerification from "../components/use-word-verification";
-import { request } from "http";
 
 export default function Home() {
   const defaultBoard = [
@@ -21,6 +20,16 @@ export default function Home() {
   const [board, setBoard] = useState(defaultBoard);
   const { submittedWords, verifyWord, loading, resetWords } =
     useWordVerification();
+
+  async function generateBoard() {
+    fetch("http://localhost:8080/api/generate")
+      .then((res) => res.json())
+      .then((b) => {
+        setBoard(b);
+        console.log(b);
+      })
+      .catch((error) => console.error("Error: ", error));
+  }
 
   /**
    * Called when the timer hits 0 or the player clicks End.
@@ -41,6 +50,7 @@ export default function Home() {
     resetWords();
   }, [resetWords]);
 
+  /*
   const onGameStart = () => {
     generateBoard().then(() => {
       setGameActive(true);
@@ -51,16 +61,8 @@ export default function Home() {
     setGameActive(false);
   };
 
-  async function generateBoard() {
-    fetch("http://localhost:8080/api/generate")
-      .then((res) => res.json())
-      .then((b) => {
-        setBoard(b);
-        console.log(b);
-      })
-      .catch((error) => console.error("Error: ", error));
-  }
-  console.log(board);
+  */
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex min-h-screen w-full max-w-3xl mx-auto flex-col items-center justify-center py-32 px-16 bg-white dark:bg-black">
