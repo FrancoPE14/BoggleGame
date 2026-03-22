@@ -38,7 +38,8 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
     const handleGameEnd = useCallback(() => {
         clearTimer();
         setStatus("ended");
-        onGameEnd?.();
+        setTimeout(() => onGameEnd?.(), 0);
+        // defers the parent update until after Timer finishes its own render cycle
     }, [onGameEnd]);
 
     /**
