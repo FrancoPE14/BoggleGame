@@ -1,4 +1,4 @@
-package main.java.com.anteaters.boggle;
+package com.anteaters.boggle.service;
 import java.util.*;
 
 public class BoggleBoard {
@@ -136,7 +136,7 @@ public class BoggleBoard {
             faces[2] = "c";
             faces[3] = "d";
             faces[4] = "e";
-            faces[6] = "f";
+            faces[5] = "f";
 
             roll();
         }
