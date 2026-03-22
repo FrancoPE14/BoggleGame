@@ -8,8 +8,28 @@ import Timer from "../components/timer";
 import useWordVerification from "../components/use-word-verification";
 
 export default function Home() {
+  const defaultBoard = [
+    ["T", "E", "S", "T", "S"], // 1
+    ["W", "O", "R", "D", "S"], // 2
+    ["G", "A", "M", "E", "S"], // 3
+    ["P", "L", "A", "Y", "S"], // 4
+    ["B", "O", "G", "G", "L"], // 5
+  ];
+
   const [gameActive, setGameActive] = useState(false);
-  const { submittedWords, verifyWord, loading, resetWords } = useWordVerification();
+  const [board, setBoard] = useState(defaultBoard);
+  const { submittedWords, verifyWord, loading, resetWords } =
+    useWordVerification();
+
+  async function generateBoard() {
+    fetch("http://localhost:8080/api/generate")
+      .then((res) => res.json())
+      .then((b) => {
+        setBoard(b);
+        console.log(b);
+      })
+      .catch((error) => console.error("Error: ", error));
+  }
 
   /**
    * Called when the timer hits 0 or the player clicks End.
@@ -25,9 +45,23 @@ export default function Home() {
    * Shows the word input and resets the submitted word list for a fresh game.
    */
   const handleGameStart = useCallback(() => {
+    generateBoard();
     setGameActive(true);
     resetWords();
   }, [resetWords]);
+
+  /*
+  const onGameStart = () => {
+    generateBoard().then(() => {
+      setGameActive(true);
+    });
+  };
+
+  const onGameEnd = () => {
+    setGameActive(false);
+  };
+
+  */
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
@@ -39,16 +73,16 @@ export default function Home() {
           alt="Logo Image"
         ></Image>
 
-        <Timer
-          onGameStart={handleGameStart}
-          onGameEnd={handleGameEnd}
+        <Timer onGameStart={handleGameStart} onGameEnd={handleGameEnd} />
+
+        <BoggleBoard
+          submittedWords={submittedWords}
+          verifyWord={verifyWord}
+          gameActive={gameActive}
+          board={board}
         />
 
-        <BoggleBoard submittedWords={submittedWords} verifyWord={verifyWord} />
-
-        {gameActive && (
-            <WordInput submittedWords={submittedWords} />
-        )}
+        {gameActive && <WordInput submittedWords={submittedWords} />}
       </main>
     </div>
   );

@@ -3,7 +3,7 @@ import java.util.*;
 
 public class BoggleBoard {
 
-    int boardSize = 4; // static size for now; resizable boards later as enhancement
+    int boardSize = 5; // static size for now; resizable boards later as enhancement
     Dice[][] grid = new Dice[boardSize][boardSize];
     LinkedList<Dice> currentEntry = new LinkedList<>(); // stores the user's current entry as a list of dice
 
