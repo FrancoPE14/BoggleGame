@@ -31,6 +31,12 @@ public class UserRegulationService{
      * @return true if and only if there is a user with the exact username and password
      */
     public boolean login(String username, String password){
+        if(username==null || username.equals("")){
+            throw new IllegalArgumentException("Username must not be empty or null.");
+        }
+        if(password==null || password.equals("")){
+            throw new IllegalArgumentException("Password must not be empty or null.");
+        }
         Optional<User> curUser = repo.findById(username);
         if(curUser.isEmpty()){ // do not find username
             return false;
@@ -53,6 +59,12 @@ public class UserRegulationService{
      * @return true only when the user is successfully registered
      */
     public boolean createNewAccount(String username, String password){
+        if(username==null || username.equals("")){
+            throw new IllegalArgumentException("Username must not be empty or null.");
+        }
+        if(password==null || password.equals("")){
+            throw new IllegalArgumentException("Password must not be empty or null.");
+        }
         if(repo.findById(username).isEmpty()==false){
             return false; // user with that username already exists
         }
@@ -69,6 +81,9 @@ public class UserRegulationService{
      * @return whether the user has logged in
      */
     public boolean isLoggedIn(String username){
+        if(username==null || username.equals("")){
+            throw new IllegalArgumentException("Username must not be empty or null.");
+        }
         for(User user : loginUsers){
             if(user.getUsername().equals(username)){
                 return true;
@@ -84,12 +99,22 @@ public class UserRegulationService{
      * @return the User object representing the user if they have logged in, otherwise return null
      */
     public User getUser(String username){
+        if(username==null || username.equals("")){
+            throw new IllegalArgumentException("Username must not be empty or null.");
+        }
         for(User user : loginUsers){
             if(user.getUsername().equals(username)){
                 return user;
             }
         }
         return null;
+    }
+
+    /**
+     * Remove all loggedin users so no user is logged in
+     */
+    public void clearAllLogin(){
+        loginUsers.clear();
     }
 
     /**

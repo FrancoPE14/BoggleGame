@@ -3,6 +3,7 @@ package com.anteaters.boggle;
 import com.anteaters.boggle.dictionary.DictionaryTrie;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -10,11 +11,17 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+//@SpringBootTest
 class DictionaryTrieTest {
 
-    @Autowired
+    //@Autowired
     private DictionaryTrie dictionary;
+
+    @BeforeEach
+    void setup(){
+        dictionary = new DictionaryTrie();
+        dictionary.loadDictionary();
+    }
 
     @Test
     void isValidWord_rejectsNullAndTooShort() {

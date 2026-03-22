@@ -1,7 +1,8 @@
 package com.anteaters.boggle.controller;
 
 import com.anteaters.boggle.service.WordVerificationService;
-import org.springframework.web.bind.annotation.GetMapping;
+import com.anteaters.boggle.service.GameService;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.anteaters.boggle.model.WordSubmissionResult;
