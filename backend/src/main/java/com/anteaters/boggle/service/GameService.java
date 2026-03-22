@@ -21,7 +21,7 @@ public class GameService {
     private ArrayList<Player> players;
     private int requiredPlayerNum; // number of players required to start a game, default is 1
     private boolean gameStarted;
-    //private BoggleBoard board;
+    private BoggleBoard board;
 
     private final WordSubmissionService wordSubmissionService;
 
