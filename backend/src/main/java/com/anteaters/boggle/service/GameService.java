@@ -68,7 +68,7 @@ public class GameService {
         if (user == null) {
             return false;
         }
-        if (!isAdded(username)) { // same player cannot be added twice
+        if (isAdded(username)) { // same player cannot be added twice
             return false;
         }
         Player player = new Player(user, calc);

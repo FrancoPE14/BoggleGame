@@ -68,7 +68,7 @@ public class GameServiceScoringIntegrationTest {
         // NOTE:
         // This assumes addPlayer()/startGame(username) work in the current GameService implementation.
         assertTrue(gameService.addPlayer("user"));
-        assertTrue(gameService.startGame("user"));
+        assertTrue(gameService.startGame());
 
         WordSubmissionResult result = gameService.submitWord("user", "CAT");
 
@@ -90,7 +90,7 @@ public class GameServiceScoringIntegrationTest {
         when(userRegulation.getUser("user")).thenReturn(user);
 
         assertTrue(gameService.addPlayer("user"));
-        assertTrue(gameService.startGame("user"));
+        assertTrue(gameService.startGame());
 
         WordSubmissionResult first = gameService.submitWord("user", "CAT");
         WordSubmissionResult second = gameService.submitWord("user", "CAT");
