@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import BoggleBoard from "../components/boggle-board";
 import WordInput from "../components/word-input";
 import Timer from "../components/timer";
@@ -18,8 +18,26 @@ export default function Home() {
   ];
 
   const [gameActive, setGameActive] = useState(false);
-  const { submittedWords, verifyWord, loading } = useWordVerification();
   const [board, setBoard] = useState(defaultBoard);
+  const { submittedWords, verifyWord, loading, resetWords } = useWordVerification();
+
+  /**
+   * Called when the timer hits 0 or the player clicks End.
+   * Hides the word input and clears the submitted word list.
+   */
+  const handleGameEnd = useCallback(() => {
+    setGameActive(false);
+    resetWords();
+  }, [resetWords]);
+
+  /**
+   * Called on initial mount and when the player clicks Play Again.
+   * Shows the word input and resets the submitted word list for a fresh game.
+   */
+  const handleGameStart = useCallback(() => {
+    setGameActive(true);
+    resetWords();
+  }, [resetWords]);
 
   const onGameStart = () => {
     generateBoard().then(() => {
@@ -51,7 +69,14 @@ export default function Home() {
           alt="Logo Image"
         ></Image>
 
+<<<<<<< frontend/app/game/page.tsx
         <Timer onGameStart={onGameStart} onGameEnd={onGameEnd} />
+=======
+        <Timer
+          onGameStart={handleGameStart}
+          onGameEnd={handleGameEnd}
+        />
+>>>>>>> frontend/app/game/page.tsx
 
         <BoggleBoard
           submittedWords={submittedWords}
@@ -60,7 +85,9 @@ export default function Home() {
           board={board}
         />
 
-        <WordInput submittedWords={submittedWords} />
+        {gameActive && (
+            <WordInput submittedWords={submittedWords} />
+        )}
       </main>
     </div>
   );

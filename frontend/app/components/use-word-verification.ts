@@ -46,5 +46,13 @@ export default function useWordVerification() {
     [submittedWords],
   );
 
-  return { submittedWords, verifyWord, loading };
+    /**
+     * Clears the submitted word list, called on game end and play again
+     * to reset state for the next game.
+     */
+    const resetWords = useCallback(() => {
+        setSubmittedWords([]);
+    }, []);
+
+    return { submittedWords, verifyWord, loading, resetWords };
 }
