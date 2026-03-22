@@ -32,6 +32,12 @@ export default function Login() {
             method: "POST"
         }).then(res => {
             if (res.status === 200) {
+                return res.json()
+            } else {
+                alert("Something went wrong! :/")
+            }
+        }).then(data => {
+            if(data.status === true) {
                 alert("You have been successfully logged in!")
                 // Persist auth status so refreshes keep the client-side login context in sync.
                 window.sessionStorage.setItem('loginStatus', JSON.stringify(true));
@@ -39,8 +45,8 @@ export default function Login() {
                 
                 router.push("/")
                 router.replace("/")
-
-            } else {
+            }
+            else {
                 alert("Something went wrong! :/")
             }
         })

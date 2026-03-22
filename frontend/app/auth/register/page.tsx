@@ -15,7 +15,7 @@ export default function Register() {
 
     const router = useRouter()
 
-    function onLogin(e: SubmitEvent) {
+    function onRegister(e: SubmitEvent) {
         e?.preventDefault();
 
         const username = String(usernameRef?.current?.value ?? "").trim()
@@ -34,14 +34,20 @@ export default function Register() {
             method: "POST"
         }).then(res => {
             if (res.status === 200) {
+                return res.json()
+            } else {
+                alert("Something went wrong! :/")
+            }
+        }).then(data => {
+            if(data.status === true) {
                 alert("You have been successfully registered!")
                 // Immediately mark the user as logged in after successful registration.
                 setLoginStatus(true);
                 
                 router.push("/")
                 router.replace("/")
-
-            } else {
+            }
+            else {
                 alert("Something went wrong! :/")
             }
         })
@@ -58,7 +64,7 @@ export default function Register() {
                                 Create a new account.
                             </p>
 
-                            <Form onSubmit={onLogin}>
+                            <Form onSubmit={onRegister}>
                                 <Form.Group className="mb-3">
                                     <Form.Label htmlFor="usernameInput">Username</Form.Label>
                                     <Form.Control
@@ -83,7 +89,7 @@ export default function Register() {
                                     variant="dark"
                                     className="w-100"
                                 >
-                                    Login
+                                    Register
                                 </Button>
                             </Form>
                         </Card.Body>

@@ -8,24 +8,34 @@ export default function LoginStatusProvider({
 }: {
   children: React.ReactNode;
 }) {
-  //Global login context
-  const [loginStatus, setLoginStatus] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
+  // Use a deterministic initial value so server and client first render match.
+  const [loginStatus, setLoginStatus] = useState<boolean>(false);
+  const [hasHydratedStorage, setHasHydratedStorage] = useState(false);
 
-    const stored = window.sessionStorage.getItem('loginStatus');
-    if (!stored) return false;
-
+  // Pull persisted auth state after mount.
+  useEffect(() => {
     try {
-      return JSON.parse(stored) as boolean;
+      const stored = window.sessionStorage.getItem('loginStatus');
+      if (stored) {
+        setLoginStatus(JSON.parse(stored) as boolean);
+      }
     } catch {
-      return false;
+      setLoginStatus(false);
+    } finally {
+      setHasHydratedStorage(true);
     }
-  });
+  }, []);
 
   // Persist login state changes to Session Storage.
   useEffect(() => {
-    window.sessionStorage.setItem('loginStatus', JSON.stringify(loginStatus));
-  }, [loginStatus]);
+    if (!hasHydratedStorage) return;
+
+    try {
+      window.sessionStorage.setItem('loginStatus', JSON.stringify(loginStatus));
+    } catch {
+      // Ignore storage write failures.
+    }
+  }, [hasHydratedStorage, loginStatus]);
 
   return (
     <LoginStatusContext.Provider value={[loginStatus, setLoginStatus]}>
