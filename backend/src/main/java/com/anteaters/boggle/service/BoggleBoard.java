@@ -1,9 +1,9 @@
-package main.java.com.anteaters.boggle;
+package com.anteaters.boggle.service;
 import java.util.*;
 
 public class BoggleBoard {
 
-    int boardSize = 4; // static size for now; resizable boards later as enhancement
+    int boardSize = 5; // static size for now; resizable boards later as enhancement
     Dice[][] grid = new Dice[boardSize][boardSize];
     LinkedList<Dice> currentEntry = new LinkedList<>(); // stores the user's current entry as a list of dice
 
@@ -136,7 +136,7 @@ public class BoggleBoard {
             faces[2] = "c";
             faces[3] = "d";
             faces[4] = "e";
-            faces[6] = "f";
+            faces[5] = "f";
 
             roll();
         }

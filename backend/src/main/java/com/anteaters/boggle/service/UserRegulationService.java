@@ -70,7 +70,7 @@ public class UserRegulationService{
      */
     public boolean isLoggedIn(String username){
         for(User user : loginUsers){
-            if(user.getUsername.equals(username)){
+            if(user.getUsername().equals(username)){
                 return true;
             }
         }
@@ -85,7 +85,7 @@ public class UserRegulationService{
      */
     public User getUser(String username){
         for(User user : loginUsers){
-            if(user.getUsername.equals(username)){
+            if(user.getUsername().equals(username)){
                 return user;
             }
         }

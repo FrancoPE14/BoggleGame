@@ -24,6 +24,7 @@ type BoggleBoardProps = {
 export default function BoggleBoard({
   submittedWords,
   verifyWord,
+  board,
 }: BoggleBoardProps) {
   const [inputWord, setInputWord] = useState("");
   const [highlightedTiles, setHighlightedTiles] = useState<Set<string>>(

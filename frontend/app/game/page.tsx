@@ -32,16 +32,15 @@ export default function Home() {
   };
 
   async function generateBoard() {
-    try {
-      const res = await fetch("http://localhost:8080/api/generate");
-      const b = await res.json();
-      setBoard(b);
-      console.log(b);
-    } catch {
-      return;
-    }
+    fetch("http://localhost:8080/api/generate")
+      .then((res) => res.json())
+      .then((b) => {
+        setBoard(b);
+        console.log(b);
+      })
+      .catch((error) => console.error("Error: ", error));
   }
-
+  console.log(board);
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex min-h-screen w-full max-w-3xl mx-auto flex-col items-center justify-center py-32 px-16 bg-white dark:bg-black">
