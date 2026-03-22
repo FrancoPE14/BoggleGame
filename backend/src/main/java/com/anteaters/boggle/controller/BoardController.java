@@ -1,9 +1,10 @@
 package main.java.com.anteaters.boggle;
 
 import org.springframework.web.bind.annotation.*;
+import com.anteaters.boggle.service.BoggleBoard;
 
 @RestController
-public class BoggleBoardController {
+public class BoardController {
 
     @GetMapping("[your mapping here]")
     public String[][] generateBoard(){

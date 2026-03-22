@@ -62,6 +62,11 @@ public class Player{
     }
 
     /**
+     * @return the current score tracker of this player
+     */
+    public ScoreTracker getTracker() { return tracker;}
+
+    /**
      * @return a list containing all accepted word strings
      */
     public List<String> getAcceptedWords(){
