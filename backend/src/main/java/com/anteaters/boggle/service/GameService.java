@@ -19,6 +19,8 @@ public class GameService {
     private final UserRegulationService userRegulation;
     private final ScoreCalculator calc;
     private ArrayList<Player> players;
+    private int requiredPlayerNum; // number of players required to start a game, default is 1
+    private boolean gameStarted;
     private BoggleBoard board;
 
     private final WordSubmissionService wordSubmissionService;
@@ -35,6 +37,8 @@ public class GameService {
         this.wordSubmissionService = wordSubmissionService;
         calc = new ScoreCalculator();
         players = new ArrayList<Player>();
+        gameStarted = false;
+        requiredPlayerNum = 1;
     }
 
     /**
@@ -60,8 +64,8 @@ public class GameService {
      * @param username the username of the player to be added
      * @return whether the player is successfully added
      */
-    public boolean addPlayer(String username) {
-        if (board != null) { // cannot add player once game started
+    public boolean addPlayer(String username){
+        if(gameStarted){ // cannot add player once game started
             return false;
         }
         User user = userRegulation.getUser(username);
@@ -165,8 +169,8 @@ public class GameService {
      *
      * @return whether the game ends successfully
      */
-    public boolean endGame() {
-        if (players.isEmpty()) { // game not started
+    public boolean endGame(){
+        if(!gameStarted){ // game not started
             return false;
         }
         for (Player player : players) {
@@ -175,7 +179,16 @@ public class GameService {
             player.reset();
         }
         players = new ArrayList<Player>();
-        board = null;
         return true;
+    }
+
+    /**
+     * Set the required number of players to start the game, only call before the game starts
+     *
+     * @param requiredPlayerNum the number of players to start a game
+     */
+    public void setRequiredPlayerNum(int requiredPlayerNum){
+        // TODO: throw exception when game already started
+        this.requiredPlayerNum = requiredPlayerNum;
     }
 }

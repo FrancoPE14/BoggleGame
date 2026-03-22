@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(LeaderboardController.class)
 @AutoConfigureMockMvc
-public class LeaderboardControllerTest {
+public class LeaderboardServiceTest {
 
     @Autowired
     private MockMvc mockMvc;
