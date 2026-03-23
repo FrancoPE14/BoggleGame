@@ -1,6 +1,5 @@
 "use client";
-import Link from "next/link";
-import { Button, Container, Col, Row, Image } from "react-bootstrap";
+import { Button, Image } from "react-bootstrap";
 
 export default function Home() {
   return (

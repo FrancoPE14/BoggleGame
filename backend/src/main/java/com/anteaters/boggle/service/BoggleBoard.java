@@ -1,16 +1,57 @@
-package main.java.com.anteaters.boggle;
-import java.util.*;
+package com.anteaters.boggle.service;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Random;
 
 public class BoggleBoard {
 
-    int boardSize = 4; // static size for now; resizable boards later as enhancement
+    int boardSize = 5; // static size for now; resizable boards later as enhancement
     Dice[][] grid = new Dice[boardSize][boardSize];
     LinkedList<Dice> currentEntry = new LinkedList<>(); // stores the user's current entry as a list of dice
+    
+    LinkedList<Dice> dicePool = new LinkedList<Dice>();
+
+
 
     public BoggleBoard() {
+        //region Canonical Boggle Dice
+        dicePool.add(new Dice(List.of("A","A","A","F","R","S")));
+        dicePool.add(new Dice(List.of("A","A","E","E","E","E")));
+        dicePool.add(new Dice(List.of("A","A","F","I","R","S")));
+        dicePool.add(new Dice(List.of("A","D","E","N","N","N")));
+        dicePool.add(new Dice(List.of("A","E","E","E","E","M")));
+
+        dicePool.add(new Dice(List.of("A","E","E","G","M","U")));
+        dicePool.add(new Dice(List.of("A","E","G","M","N","N")));
+        dicePool.add(new Dice(List.of("A","F","I","R","S","Y")));
+        dicePool.add(new Dice(List.of("B","J","K","Q","X","Z")));
+        dicePool.add(new Dice(List.of("C","C","E","N","S","T")));
+
+        dicePool.add(new Dice(List.of("C","E","I","I","L","T")));
+        dicePool.add(new Dice(List.of("C","E","I","L","P","T")));
+        dicePool.add(new Dice(List.of("C","E","I","P","S","T")));
+        dicePool.add(new Dice(List.of("D","D","H","N","O","T")));
+        dicePool.add(new Dice(List.of("D","H","H","L","O","R")));
+
+        dicePool.add(new Dice(List.of("D","H","L","N","O","R")));
+        dicePool.add(new Dice(List.of("D","H","L","N","O","R")));
+        dicePool.add(new Dice(List.of("E","I","I","I","T","T")));
+        dicePool.add(new Dice(List.of("E","M","O","T","T","T")));
+        dicePool.add(new Dice(List.of("E","N","S","S","S","U")));
+
+        dicePool.add(new Dice(List.of("F","I","P","R","S","Y")));
+        dicePool.add(new Dice(List.of("G","O","R","R","V","W")));
+        dicePool.add(new Dice(List.of("I","P","R","R","R","Y")));
+        dicePool.add(new Dice(List.of("N","O","O","T","U","W")));
+        dicePool.add(new Dice(List.of("O","O","O","T","T","U")));
+        //endregion
+
         for (int i = 0; i < boardSize; i++){
             for (int j = 0; j < boardSize; j++){
-                grid[i][j] = new Dice();
+                Random rand = new Random();
+                int randomIndex = rand.nextInt(dicePool.size());
+                grid[i][j] = dicePool.remove(randomIndex);
                 grid[i][j].setCoordinates(i, j);
             }
         }
@@ -136,7 +177,7 @@ public class BoggleBoard {
             faces[2] = "c";
             faces[3] = "d";
             faces[4] = "e";
-            faces[6] = "f";
+            faces[5] = "f";
 
             roll();
         }

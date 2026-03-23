@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Login from "./components/login";
+import BoggleNav from "./components/boggleNav";
+import LoginStatusProvider from "./components/context/LoginStatusProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,6 +24,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  /**
+   * Shell for all pages
+   * {children} represents an arbitrary page, which would have a BoggleNav above it and is wrapped in LoginStatusProvider
+   * 
+   */
   return (
     <html lang="en">
       <head>
@@ -36,8 +42,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Login />
-        {children}
+        <LoginStatusProvider>
+          <BoggleNav />
+          {children}
+        </LoginStatusProvider>
       </body>
     </html>
   );

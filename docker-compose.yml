@@ -1,27 +1,5 @@
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: boggle_mysql
-    env_file:
-      - .env
-    ports:
-      - "3306:3306"
-    restart: unless-stopped
-    volumes:
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql # bind mount
-    networks:
-      - backend
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
   backend:
-    depends_on:
-      mysql:
-        condition: service_healthy   # waits until mysql is actually ready
     restart: always
     build:
       context: ./backend
@@ -31,7 +9,6 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - backend
       - frontend
 
   frontend:
@@ -41,11 +18,10 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - backend         # frontend should wait on backend, not mysql
+      - backend
     restart: unless-stopped
     networks:
       - frontend
 
 networks:
-  backend:
   frontend:
