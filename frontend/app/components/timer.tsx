@@ -16,10 +16,12 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     /**
-     * Notify parent that game has started on initial mount
-     * */
+     * Notify parent that game has started once on initial mount.
+     * Intentionally omit callback deps so this does not re-run when the parent passes a new function reference.
+     */
     useEffect(() => {
         onGameStart?.();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once on mount only
     }, []);
 
     /**

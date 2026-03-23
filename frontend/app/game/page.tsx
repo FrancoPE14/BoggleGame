@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState, useCallback } from "react";
 import BoggleBoard from "../components/boggle-board";
 import WordInput from "../components/word-input";
+import ScoreDisplay from "../components/score-display";
 import Timer from "../components/timer";
 import useWordVerification from "../components/use-word-verification";
 
@@ -18,10 +19,9 @@ export default function Home() {
 
   const [gameActive, setGameActive] = useState(false);
   const [board, setBoard] = useState(defaultBoard);
-  const { submittedWords, verifyWord, loading, resetWords } =
-    useWordVerification();
+  const { submittedWords, verifyWord, resetWords } = useWordVerification();
 
-  async function generateBoard() {
+  function generateBoard() {
     fetch("http://localhost:8080/api/generate")
       .then((res) => res.json())
       .then((b) => {
@@ -50,19 +50,6 @@ export default function Home() {
     resetWords();
   }, [resetWords]);
 
-  /*
-  const onGameStart = () => {
-    generateBoard().then(() => {
-      setGameActive(true);
-    });
-  };
-
-  const onGameEnd = () => {
-    setGameActive(false);
-  };
-
-  */
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex min-h-screen w-full max-w-3xl mx-auto flex-col items-center justify-center py-32 px-16 bg-white dark:bg-black">
@@ -82,7 +69,12 @@ export default function Home() {
           board={board}
         />
 
-        {gameActive && <WordInput submittedWords={submittedWords} />}
+        {gameActive && (
+          <>
+            <WordInput submittedWords={submittedWords} />
+            <ScoreDisplay submittedWords={submittedWords} />
+          </>
+        )}
       </main>
     </div>
   );
