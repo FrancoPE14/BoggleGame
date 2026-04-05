@@ -238,7 +238,7 @@ public class GameSession{
      */
     private Player getPlayer(String username) {
         for (Player player : players) {
-            if (player.getUsername().equals(username)) {
+            if (player!=null && player.getUsername().equals(username)) {
                 return player;
             }
         }
