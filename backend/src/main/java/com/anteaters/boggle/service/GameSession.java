@@ -224,6 +224,13 @@ public class GameSession{
     }
 
     /**
+     * Reset the id counter, only for testing purpose, do not call
+     */
+    public static void resetIdCnt(){
+        idCnt = 0;
+    }
+
+    /**
      * Finds a player in the current session by username.
      *
      * @param username username of the player

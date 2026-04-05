@@ -40,10 +40,12 @@ public class GameControllerSubmitWordTest {
                 210,
                 List.of("APPLE")
         );
+        int sessionId = 10;
 
-        when(service.submitWord("user", "apple")).thenReturn(result);
+        when(service.submitWord(sessionId, "user", "apple")).thenReturn(result);
 
         mockMvc.perform(post("/api/submit-word")
+                        .param("sessionId", String.valueOf(sessionId))
                         .param("username", "user")
                         .param("word", "apple"))
                 .andExpect(status().isOk())
@@ -72,10 +74,12 @@ public class GameControllerSubmitWordTest {
                 210,
                 List.of("APPLE")
         );
+        int sessionId = 10;
 
-        when(service.submitWord("user", "apple")).thenReturn(result);
+        when(service.submitWord(sessionId, "user", "apple")).thenReturn(result);
 
         mockMvc.perform(post("/api/submit-word")
+                        .param("sessionId", String.valueOf(sessionId))
                         .param("username", "user")
                         .param("word", "apple"))
                 .andExpect(status().isOk())

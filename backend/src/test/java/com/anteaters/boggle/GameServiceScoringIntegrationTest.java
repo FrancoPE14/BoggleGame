@@ -6,6 +6,7 @@ import com.anteaters.boggle.entity.User;
 import com.anteaters.boggle.model.WordSubmissionResult;
 import com.anteaters.boggle.repository.UserRepository;
 import com.anteaters.boggle.service.GameService;
+import com.anteaters.boggle.service.GameSession;
 import com.anteaters.boggle.service.ScoreCalculator;
 import com.anteaters.boggle.service.UserRegulationService;
 import com.anteaters.boggle.service.WordSubmissionService;
@@ -56,6 +57,7 @@ public class GameServiceScoringIntegrationTest {
         repo = mock(UserRepository.class);
         userRegulation = mock(UserRegulationService.class);
 
+        GameSession.resetIdCnt();
         gameService = new GameService(repo, userRegulation, submissionService);
     }
 
