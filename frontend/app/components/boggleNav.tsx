@@ -33,9 +33,10 @@ export default function BoggleNav() {
                 </Nav.Link>
               </>
             ) : (
-              <Nav.Link as={Link} href="/auth/logout">
-                Logout
-              </Nav.Link>
+                <>
+                  <Nav.Link as={Link} href="/profile">Profile</Nav.Link>
+                  <Nav.Link as={Link} href="/auth/logout">Logout</Nav.Link>
+                </>
             )}
           </Nav>
         </Navbar.Collapse>
