@@ -90,11 +90,13 @@ public class GameServiceScoringIntegrationTest {
         when(user.getUsername()).thenReturn("user");
         when(userRegulation.getUser("user")).thenReturn(user);
 
-        assertTrue(gameService.addPlayer("user"));
-        assertTrue(gameService.startGame());
+        int sessionId = 10;
 
-        WordSubmissionResult first = gameService.submitWord("user", "CAT");
-        WordSubmissionResult second = gameService.submitWord("user", "CAT");
+        assertDoesNotThrow(() -> gameService.addPlayer(sessionId, "user"));
+        assertNotNull(gameService.startGame(sessionId));
+
+        WordSubmissionResult first = gameService.submitWord(sessionId, "user", "CAT");
+        WordSubmissionResult second = gameService.submitWord(sessionId, "user", "CAT");
 
         assertTrue(first.isAccepted());
 
@@ -103,7 +105,7 @@ public class GameServiceScoringIntegrationTest {
         assertTrue(second.isValid());
         assertEquals(0, second.getPointsAwarded());
         assertEquals(100, second.getCurrentScore());
-        assertEquals(100, gameService.getScore("user"));
-        assertEquals(1, gameService.getAcceptedWords("user").size());
+        assertEquals(100, gameService.getScore(sessionId, "user"));
+        assertEquals(1, gameService.getAcceptedWords(sessionId, "user").size());
     }
 }

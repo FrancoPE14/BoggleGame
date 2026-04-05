@@ -211,7 +211,7 @@ public class GameSession{
         if(newPlayer==null){
             throw new IllegalArgumentException("Argument is null");
         }
-        if(isPlayerAdded(newPlayer.getId())){
+        if(isPlayerAdded(newPlayer.getUsername())){
             throw new IllegalStateException("Player is already added to this session");
         }
         if(numPlayers>=maxPlayers){

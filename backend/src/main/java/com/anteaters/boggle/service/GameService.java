@@ -96,6 +96,7 @@ public class GameService {
             throw new IllegalArgumentException("The user is not logged in");
         }
 
+        Player player = new Player(user, calc);
         session.addPlayer(player);
     }
 
@@ -169,6 +170,6 @@ public class GameService {
         }
         GameSession session = sessions.get(sessionId);
 
-        session.endGame(username);
+        session.endGame();
     }
 }
