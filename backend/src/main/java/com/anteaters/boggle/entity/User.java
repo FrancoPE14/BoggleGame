@@ -21,6 +21,22 @@ public class User{
     private int matchesWon;
     @Column(name = "highest_score")
     private int highScore;
+    @Column(name = "profile_picture", columnDefinition = "MEDIUMTEXT")
+    private String profilePicture;
+
+    /**
+     * @return the profile picture of the user as a base64-encoded string, or null if not set
+     */
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    /**
+     * @param profilePicture the new profile picture as a base64-encoded string
+     */
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
 
     /**
      * The default constructor, Spring Boot will use this when they read entries from db and fill the private

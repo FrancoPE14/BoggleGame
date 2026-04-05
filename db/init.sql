@@ -6,5 +6,6 @@ CREATE TABLE user (
     password VARCHAR(255) NOT NULL,
     matches_won INT DEFAULT 0,
     highest_score INT DEFAULT 0,
+    profile_picture MEDIUMTEXT DEFAULT NULL,
     PRIMARY KEY (user_name)
 );
