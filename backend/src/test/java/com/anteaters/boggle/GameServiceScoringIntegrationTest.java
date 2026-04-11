@@ -64,7 +64,7 @@ public class GameServiceScoringIntegrationTest {
     @Test
     void submitWord_updatesScoreAndAcceptedWordsThroughGameService() {
         User user = mock(User.class);
-        int sessionId = 10;
+        int sessionId = 5;
         when(user.getUsername()).thenReturn("user");
         when(userRegulation.getUser("user")).thenReturn(user);
 
@@ -92,7 +92,7 @@ public class GameServiceScoringIntegrationTest {
         when(user.getUsername()).thenReturn("user");
         when(userRegulation.getUser("user")).thenReturn(user);
 
-        int sessionId = 10;
+        int sessionId = 5;
 
         assertDoesNotThrow(() -> gameService.addPlayer(sessionId, "user"));
         assertNotNull(gameService.startGame(sessionId));

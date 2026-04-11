@@ -3,6 +3,9 @@ package com.anteaters.boggle.service;
 import com.anteaters.boggle.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.concurrent.ScheduledFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -320,5 +323,112 @@ public class GameSessionTest {
 
         assertEquals(0, session1.getId());
         assertEquals(1, session2.getId());
+    }
+
+    /**
+     * AI-generated test method.
+     *
+     * <p>Verifies that startGame initializes the timer-related fields and stores
+     * a scheduled task handle.</p>
+     */
+    @Test
+    public void startGameInitializesTimerFieldsAndScheduledTask() throws Exception {
+        GameSession session = new GameSession(2, repo, wordSubmissionService);
+
+        session.startGame();
+
+        long startTime = (long) getPrivateField(session, "startTime");
+        long endTime = (long) getPrivateField(session, "endTime");
+        ScheduledFuture<?> future =
+                (ScheduledFuture<?>) getPrivateField(session, "scheduledFuture");
+
+        assertTrue(startTime > 0);
+        assertTrue(endTime > startTime);
+        assertNotNull(future);
+
+        session.endGame();
+    }
+
+    /**
+     * AI-generated test method.
+     *
+     * <p>Verifies that endGame cancels the scheduled timer task and clears the
+     * timer-related fields.</p>
+     */
+    @Test
+    public void endGameCancelsTimerAndClearsTimerFields() throws Exception {
+        GameSession session = new GameSession(2, repo, wordSubmissionService);
+
+        session.startGame();
+
+        ScheduledFuture<?> future =
+                (ScheduledFuture<?>) getPrivateField(session, "scheduledFuture");
+
+        session.endGame();
+
+        assertTrue(future.isCancelled());
+        assertNull(getPrivateField(session, "scheduledFuture"));
+        assertEquals(-1L, getPrivateField(session, "startTime"));
+        assertEquals(-1L, getPrivateField(session, "endTime"));
+        assertFalse(session.isStarted());
+    }
+
+    /**
+     * AI-generated test method.
+     *
+     * <p>Verifies that updateFrontendTimer ends the game when the current time
+     * has passed the session end time.</p>
+     */
+    @Test
+    public void updateFrontendTimerAfterExpirationEndsGame() throws Exception {
+        GameSession session = new GameSession(2, repo, wordSubmissionService);
+
+        session.startGame();
+
+        ScheduledFuture<?> future =
+                (ScheduledFuture<?>) getPrivateField(session, "scheduledFuture");
+        future.cancel(false);
+
+        setPrivateField(session, "endTime", System.currentTimeMillis() - 1L);
+
+        invokePrivateNoArgMethod(session, "updateFrontendTimer");
+
+        assertFalse(session.isStarted());
+        assertNull(getPrivateField(session, "scheduledFuture"));
+        assertEquals(-1L, getPrivateField(session, "startTime"));
+        assertEquals(-1L, getPrivateField(session, "endTime"));
+    }
+
+    /**
+     * AI-generated helper method.
+     *
+     * <p>Returns the value of a private field by reflection.</p>
+     */
+    private Object getPrivateField(Object target, String fieldName) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return field.get(target);
+    }
+
+    /**
+     * AI-generated helper method.
+     *
+     * <p>Sets the value of a private field by reflection.</p>
+     */
+    private void setPrivateField(Object target, String fieldName, Object value) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
+    }
+
+    /**
+     * AI-generated helper method.
+     *
+     * <p>Invokes a private no-argument method by reflection.</p>
+     */
+    private void invokePrivateNoArgMethod(Object target, String methodName) throws Exception {
+        Method method = target.getClass().getDeclaredMethod(methodName);
+        method.setAccessible(true);
+        method.invoke(target);
     }
 }
