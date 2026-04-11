@@ -7,8 +7,11 @@ import com.anteaters.boggle.service.Player;
 import com.anteaters.boggle.service.UserRegulationService;
 import com.anteaters.boggle.service.ScoreCalculator;
 import com.anteaters.boggle.service.BoggleBoard;
+import com.anteaters.boggle.service.GameSession;
 import com.anteaters.boggle.model.WordSubmissionResult;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * A service module for the multiplayer feature that will be implemented in the future
@@ -18,15 +21,13 @@ public class GameService {
     private final UserRepository repo;
     private final UserRegulationService userRegulation;
     private final ScoreCalculator calc;
-    private ArrayList<Player> players;
-    private int requiredPlayerNum; // number of players required to start a game, default is 1
-    private boolean gameStarted;
-    private BoggleBoard board;
-
     private final WordSubmissionService wordSubmissionService;
+    private static final int MAX_SESSIONS = 100; // the max number of sessions we can create
+
+    private Map<Integer, GameSession> sessions;
 
     /**
-     * The constructor for GameService
+     * The constructor for GameService, this will create all game sessions
      *
      * @param repo           auto-created by Sprint Boot
      * @param userRegulation the service that contains all login information
@@ -36,78 +37,67 @@ public class GameService {
         this.userRegulation = userRegulation;
         this.wordSubmissionService = wordSubmissionService;
         calc = new ScoreCalculator();
-        players = new ArrayList<Player>();
-        gameStarted = false;
-        requiredPlayerNum = 1;
+        sessions = new HashMap<Integer, GameSession>();
+        // TODO: specify the size (number of players) of each game session
+        // for now all sessions are 3 players
+        for(int i=0; i<MAX_SESSIONS; i++){
+            GameSession session = new GameSession(3, repo, wordSubmissionService);
+            sessions.put(session.getId(), session);
+        }
+    }
+
+    /**
+     * Find the session id associate with the user
+     *
+     * @param username from the user to be checked
+     * @return a non-negative session id, or -1 if the user is never added to any session
+     */
+    private int getSessionId(String username){
+        // use the map iterator to linearly search through all entries
+        for(Map.Entry<Integer, GameSession> e : sessions.entrySet()){
+            if(e.getValue().isPlayerAdded(username)){
+                return e.getKey();
+            }
+        }
+        return -1;
     }
 
     /**
      * Checks if the user is logged in, if so, start a game session.
      * A game cannot be started more than once.
      *
-     * @return whether the game session is successfully started
+     * @return the BoggleBoard object associate with that session
+     * @param sessionId the sesssion that we want to start
      */
-    public boolean startGame() {
-        if (players.isEmpty() || board != null) {
-            return false;
+    public BoggleBoard startGame(int sessionId) {
+        if(!sessions.containsKey(sessionId)){
+            throw new IllegalArgumentException("The session of this id does not exists");
         }
-        // TODO: create gameboard logic
-
-        board = new BoggleBoard(); // added this temporary marker so "game started" state works. TODO: Delete this
-
-        return true;
+        GameSession session = sessions.get(sessionId);
+        return session.startGame();
     }
 
     /**
-     * Checks if the user is logged in, if so, add them to the game.
+     * Checks if the user is logged in, if so, add them to the session.
      *
+     * @param sessionId the id of the game session
      * @param username the username of the player to be added
-     * @return whether the player is successfully added
      */
-    public boolean addPlayer(String username){
-        if(gameStarted){ // cannot add player once game started
-            return false;
+    public void addPlayer(int sessionId, String username){
+        // parameter check - sessionId
+        if(!sessions.containsKey(sessionId)){
+            throw new IllegalArgumentException("The session of this id does not exists");
         }
+        GameSession session = sessions.get(sessionId);
+
+        // parameter check - username
         User user = userRegulation.getUser(username);
         if (user == null) {
-            return false;
+            throw new IllegalArgumentException("The user is not logged in");
         }
-        if (isAdded(username)) { // same player cannot be added twice
-            return false;
-        }
+
         Player player = new Player(user, calc);
-        players.add(player);
-        return true;
-    }
-
-    /**
-     * Linear search on whether the user already exists in the player list
-     *
-     * @param username the user to be checked
-     * @return whether the player is already added to the game
-     */
-    public boolean isAdded(String username) {
-        for (Player player : players) {
-            if (player.getUsername().equals(username)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Finds a player in the current game by username.
-     *
-     * @param username username of the player
-     * @return the Player object if found, otherwise null
-     */
-    private Player getPlayer(String username) {
-        for (Player player : players) {
-            if (player.getUsername().equals(username)) {
-                return player;
-            }
-        }
-        return null;
+        session.addPlayer(player);
     }
 
     /**
@@ -119,76 +109,67 @@ public class GameService {
      * - pass that player's tracker to WordSubmissionService
      * - receive the result object containing score / accepted words state
      *
+     * @param sessionId the id of the game session
      * @param username username of the player submitting the word
      * @param word     raw submitted word
      * @return result of submission including score state
      */
-    public WordSubmissionResult submitWord(String username, String word) {
-        if (board == null) {
-            throw new IllegalStateException("Game has not started yet.");
+    public WordSubmissionResult submitWord(int sessionId, String username, String word) {
+        // parameter check - sessionId
+        if(!sessions.containsKey(sessionId)){
+            throw new IllegalArgumentException("The session of this id does not exists");
         }
+        GameSession session = sessions.get(sessionId);
 
-        Player player = getPlayer(username);
-        if (player == null) {
-            throw new IllegalArgumentException("Player not found in current game.");
-        }
-
-        return wordSubmissionService.submitWord(word, player.getTracker());
+        return session.submitWord(username, word);
     }
 
     /**
      * Returns the current score for a player in the active game.
      *
+     * @param sessionId the id of the game session
      * @param username username of the player
      * @return current score
      */
-    public int getScore(String username) {
-        Player player = getPlayer(username);
-        if (player == null) {
-            throw new IllegalArgumentException("Player not found in current game.");
+    public int getScore(int sessionId, String username) {
+        // parameter check - sessionId
+        if(!sessions.containsKey(sessionId)){
+            throw new IllegalArgumentException("The session of this id does not exists");
         }
-        return player.getScore();
+        GameSession session = sessions.get(sessionId);
+
+        return session.getScore(username);
     }
 
     /**
-     * Returns the accepted words list for a player in the active game.
+     * Returns the accepted words list for a player in an active game.
      *
+     * @param sessionId the id of the game session
      * @param username username of the player
      * @return accepted words in submission order
      */
-    public ArrayList<String> getAcceptedWords(String username) {
-        Player player = getPlayer(username);
-        if (player == null) {
-            throw new IllegalArgumentException("Player not found in current game.");
+    public ArrayList<String> getAcceptedWords(int sessionId, String username) {
+        // parameter check - sessionId
+        if(!sessions.containsKey(sessionId)){
+            throw new IllegalArgumentException("The session of this id does not exists");
         }
-        return new ArrayList<>(player.getAcceptedWords());
+        GameSession session = sessions.get(sessionId);
+
+        return session.getAcceptedWords(username);
     }
 
     /**
-     * End the game session and flushes all player data to the database
+     * End a game session and flushes all player data to the database
      *
-     * @return whether the game ends successfully
+     * @param sessionId the id of the game session
      */
-    public boolean endGame(){
-        if(!gameStarted){ // game not started
-            return false;
+    public void endGame(int sessionId){
+        // parameter check - sessionId
+        if(!sessions.containsKey(sessionId)){
+            throw new IllegalArgumentException("The session of this id does not exists");
         }
-        for (Player player : players) {
-            player.updateHighScore();
-            player.flushToDB(repo);
-            player.reset();
-        }
-        players = new ArrayList<Player>();
-        return true;
-    }
+        GameSession session = sessions.get(sessionId);
 
-    /**
-     * Set the required number of players to start the game, only call before the game starts
-     *
-     * @param requiredPlayerNum the number of players to start a game
-     */
-    public void setRequiredPlayerNum(int requiredPlayerNum){
-        // TODO: throw exception when game already started
-        this.requiredPlayerNum = requiredPlayerNum;
+        session.endGame();
     }
 }

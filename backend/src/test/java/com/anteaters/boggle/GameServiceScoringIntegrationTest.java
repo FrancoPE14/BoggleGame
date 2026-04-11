@@ -6,6 +6,7 @@ import com.anteaters.boggle.entity.User;
 import com.anteaters.boggle.model.WordSubmissionResult;
 import com.anteaters.boggle.repository.UserRepository;
 import com.anteaters.boggle.service.GameService;
+import com.anteaters.boggle.service.GameSession;
 import com.anteaters.boggle.service.ScoreCalculator;
 import com.anteaters.boggle.service.UserRegulationService;
 import com.anteaters.boggle.service.WordSubmissionService;
@@ -56,21 +57,23 @@ public class GameServiceScoringIntegrationTest {
         repo = mock(UserRepository.class);
         userRegulation = mock(UserRegulationService.class);
 
+        GameSession.resetIdCnt();
         gameService = new GameService(repo, userRegulation, submissionService);
     }
 
     @Test
     void submitWord_updatesScoreAndAcceptedWordsThroughGameService() {
         User user = mock(User.class);
+        int sessionId = 10;
         when(user.getUsername()).thenReturn("user");
         when(userRegulation.getUser("user")).thenReturn(user);
 
         // NOTE:
         // This assumes addPlayer()/startGame(username) work in the current GameService implementation.
-        assertTrue(gameService.addPlayer("user"));
-        assertTrue(gameService.startGame());
+        gameService.addPlayer(sessionId, "user");
+        gameService.startGame(sessionId);
 
-        WordSubmissionResult result = gameService.submitWord("user", "CAT");
+        WordSubmissionResult result = gameService.submitWord(sessionId, "user", "CAT");
 
         assertTrue(result.isAccepted());
         assertTrue(result.isValid());
@@ -78,9 +81,9 @@ public class GameServiceScoringIntegrationTest {
         assertEquals("CAT", result.getNormalizedWord());
         assertEquals(100, result.getPointsAwarded());
         assertEquals(100, result.getCurrentScore());
-        assertEquals(100, gameService.getScore("user"));
-        assertEquals(1, gameService.getAcceptedWords("user").size());
-        assertEquals("CAT", gameService.getAcceptedWords("user").get(0));
+        assertEquals(100, gameService.getScore(sessionId, "user"));
+        assertEquals(1, gameService.getAcceptedWords(sessionId, "user").size());
+        assertEquals("CAT", gameService.getAcceptedWords(sessionId, "user").get(0));
     }
 
     @Test
@@ -89,11 +92,13 @@ public class GameServiceScoringIntegrationTest {
         when(user.getUsername()).thenReturn("user");
         when(userRegulation.getUser("user")).thenReturn(user);
 
-        assertTrue(gameService.addPlayer("user"));
-        assertTrue(gameService.startGame());
+        int sessionId = 10;
 
-        WordSubmissionResult first = gameService.submitWord("user", "CAT");
-        WordSubmissionResult second = gameService.submitWord("user", "CAT");
+        assertDoesNotThrow(() -> gameService.addPlayer(sessionId, "user"));
+        assertNotNull(gameService.startGame(sessionId));
+
+        WordSubmissionResult first = gameService.submitWord(sessionId, "user", "CAT");
+        WordSubmissionResult second = gameService.submitWord(sessionId, "user", "CAT");
 
         assertTrue(first.isAccepted());
 
@@ -102,7 +107,7 @@ public class GameServiceScoringIntegrationTest {
         assertTrue(second.isValid());
         assertEquals(0, second.getPointsAwarded());
         assertEquals(100, second.getCurrentScore());
-        assertEquals(100, gameService.getScore("user"));
-        assertEquals(1, gameService.getAcceptedWords("user").size());
+        assertEquals(100, gameService.getScore(sessionId, "user"));
+        assertEquals(1, gameService.getAcceptedWords(sessionId, "user").size());
     }
 }
