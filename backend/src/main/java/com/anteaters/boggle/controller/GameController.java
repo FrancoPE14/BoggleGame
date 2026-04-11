@@ -1,13 +1,13 @@
 package com.anteaters.boggle.controller;
 
-import com.anteaters.boggle.service.WordVerificationService;
-import com.anteaters.boggle.service.GameService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.anteaters.boggle.model.WordSubmissionResult;
-import com.anteaters.boggle.service.GameService;
 import org.springframework.web.bind.annotation.PostMapping;
+import com.anteaters.boggle.model.WordSubmissionResult;
+import com.anteaters.boggle.service.WordVerificationService;
+import com.anteaters.boggle.service.GameService;
+import com.anteaters.boggle.service.BoggleBoard;
 import java.util.Map;
 
 @RestController
@@ -29,15 +29,20 @@ public class GameController{
     @PostMapping("/api/start")
     public Map<String, Object> startGame(@RequestParam int sessionId, @RequestParam String username) {
         boolean succeed = true;
+        BoggleBoard board = null;
+        String errMsg = null;
         try {
-            service.startGame(sessionId);
+            board = service.startGame(sessionId);
         }catch(Exception e){
             succeed = false;
+            errMsg = e.getMessage();
         }
         return Map.of(
+                "status", succeed,
                 "username", username,
                 "sessionId", sessionId,
-                "status", succeed
+                "board", board,
+                "err", errMsg
         );
     }
 
@@ -75,8 +80,8 @@ public class GameController{
             succeed = false;
         }
         return Map.of(
-                "sessionId", sessionId,
-                "status", succeed
+                "status", succeed,
+                "sessionId", sessionId
         );
     }
 }
