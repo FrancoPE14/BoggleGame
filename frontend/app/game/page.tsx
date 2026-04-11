@@ -19,7 +19,7 @@ export default function Home() {
 
   const [gameActive, setGameActive] = useState(false);
   const [board, setBoard] = useState(defaultBoard);
-  const { submittedWords, verifyWord, resetWords } = useWordVerification();
+  const { submittedWords, verifyWord, resetWords, currentScore } = useWordVerification();
 
   function generateBoard() {
     fetch("http://localhost:8080/api/generate")
@@ -72,7 +72,7 @@ export default function Home() {
         {gameActive && (
           <>
             <WordInput submittedWords={submittedWords} />
-            <ScoreDisplay submittedWords={submittedWords} />
+            <ScoreDisplay submittedWords={submittedWords} currentScore={currentScore} />
           </>
         )}
       </main>
