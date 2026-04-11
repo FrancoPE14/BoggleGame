@@ -28,13 +28,13 @@ public class GameSession{
     private String[] settings; // TODO: to be implemented
     private long startTime = -1; // system time when the game starts in ms
     private long endTime = -1; // system time when the game would end in ms
+    private ScheduledExecutorService scheduler = null; // one timer thread for each session
     private ScheduledFuture<?> scheduledFuture = null;
 
     private final int sessionId; // unique identifier of the sessions
     private final int maxPlayers; // max number of players that this session can have
     private final WordSubmissionService wordSubmissionService;
     private final UserRepository repo;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1); // one timer thread for each session
     // TODO: maybe a part of settings?
     private final long duration; // duration of the game in seconds
 
@@ -114,6 +114,7 @@ public class GameSession{
         }
         startTime = System.currentTimeMillis();
         endTime = startTime + 1000*duration;
+        scheduler = Executors.newScheduledThreadPool(1);
         scheduledFuture = scheduler.scheduleAtFixedRate(() -> updateFrontendTimer(), 0, 1, TimeUnit.SECONDS);
         gameStarted = true;
         return board;
@@ -173,6 +174,7 @@ public class GameSession{
         scheduledFuture = null;
         startTime = -1;
         endTime = -1;
+        scheduler.shutdownNow();
 
         for (Player player : players) {
             if(player!=null) {

@@ -84,6 +84,7 @@ public class GameServiceScoringIntegrationTest {
         assertEquals(100, gameService.getScore(sessionId, "user"));
         assertEquals(1, gameService.getAcceptedWords(sessionId, "user").size());
         assertEquals("CAT", gameService.getAcceptedWords(sessionId, "user").get(0));
+        assertDoesNotThrow(() -> gameService.endGame(sessionId));
     }
 
     @Test
@@ -109,5 +110,6 @@ public class GameServiceScoringIntegrationTest {
         assertEquals(100, second.getCurrentScore());
         assertEquals(100, gameService.getScore(sessionId, "user"));
         assertEquals(1, gameService.getAcceptedWords(sessionId, "user").size());
+        assertDoesNotThrow(() -> gameService.endGame(sessionId));
     }
 }
