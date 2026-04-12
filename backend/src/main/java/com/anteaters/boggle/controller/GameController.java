@@ -67,7 +67,7 @@ public class GameController{
     }
 
     /**
-     * End a game session
+     * End a game session, usually should not call because the session now ends automatically 3 minutes after start
      *
      * @return JSON containing info about whether the game has ended successfully
      */

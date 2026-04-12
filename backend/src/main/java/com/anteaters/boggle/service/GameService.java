@@ -22,7 +22,7 @@ public class GameService {
     private final UserRegulationService userRegulation;
     private final ScoreCalculator calc;
     private final WordSubmissionService wordSubmissionService;
-    private static final int MAX_SESSIONS = 100; // the max number of sessions we can create
+    private static final int MAX_SESSIONS = 10; // the max number of sessions we can create
 
     private Map<Integer, GameSession> sessions;
 

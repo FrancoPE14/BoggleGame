@@ -9,6 +9,10 @@ import com.anteaters.boggle.service.BoggleBoard;
 import com.anteaters.boggle.model.WordSubmissionResult;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class stores the state of a multiplayer game, including the session id, whether the game is active, the players
@@ -22,11 +26,17 @@ public class GameSession{
     private Player[] players; // fixed number of players determined at initialization of object
     private BoggleBoard board;
     private String[] settings; // TODO: to be implemented
+    private long startTime = -1; // system time when the game starts in ms
+    private long endTime = -1; // system time when the game would end in ms
+    private ScheduledExecutorService scheduler = null; // one timer thread for each session
+    private ScheduledFuture<?> scheduledFuture = null;
 
     private final int sessionId; // unique identifier of the sessions
     private final int maxPlayers; // max number of players that this session can have
     private final WordSubmissionService wordSubmissionService;
     private final UserRepository repo;
+    // TODO: maybe a part of settings?
+    private final long duration; // duration of the game in seconds
 
     /**
      * Initializes the session, with caller deciding the number of players
@@ -39,14 +49,21 @@ public class GameSession{
         if(maxPlayers<=0 || service==null || repo==null){
             throw new IllegalArgumentException();
         }
+
         sessionId = idCnt++;
+
+        // initialize fields
         gameStarted = false;
         numPlayers = 0;
         this.maxPlayers = maxPlayers;
         players = new Player[maxPlayers];
         board = new BoggleBoard();
+
         wordSubmissionService = service;
         this.repo = repo;
+
+        // timer related
+        duration = 180; // TODO: hard-coded for now, change for future implementation of settings
     }
 
     /**
@@ -95,8 +112,25 @@ public class GameSession{
         if(gameStarted){
             throw new IllegalStateException("Session has already started");
         }
+        startTime = System.currentTimeMillis();
+        endTime = startTime + 1000*duration;
+        scheduler = Executors.newScheduledThreadPool(1);
+        scheduledFuture = scheduler.scheduleAtFixedRate(() -> updateFrontendTimer(), 0, 1, TimeUnit.SECONDS);
         gameStarted = true;
         return board;
+    }
+
+    /**
+     * Run at each second of the session to send time left to frontend and check if the game has ennded
+     * TODO: finish the server-side event part
+     */
+    private void updateFrontendTimer(){
+        long curTime = System.currentTimeMillis();
+        long timeLeft = duration - (curTime - startTime)/1000;
+        // TODO: send timeLeft to the frontend
+        if(curTime >= endTime){
+            endGame();
+        }
     }
 
     /**
@@ -134,6 +168,14 @@ public class GameSession{
         if(!gameStarted){ // game not started
             throw new IllegalStateException("Game have not started");
         }
+
+        // stop the timer
+        scheduledFuture.cancel(false);
+        scheduledFuture = null;
+        startTime = -1;
+        endTime = -1;
+        scheduler.shutdownNow();
+
         for (Player player : players) {
             if(player!=null) {
                 player.updateHighScore();

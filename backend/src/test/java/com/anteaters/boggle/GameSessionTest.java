@@ -1,8 +1,15 @@
 package com.anteaters.boggle.service;
 
 import com.anteaters.boggle.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ScheduledFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -19,6 +26,7 @@ public class GameSessionTest {
 
     private UserRepository repo;
     private WordSubmissionService wordSubmissionService;
+    private final List<GameSession> sessionsToCleanUp = new ArrayList<>();
 
     /**
      * Sets up shared mocked dependencies before each test.
@@ -28,6 +36,36 @@ public class GameSessionTest {
         GameSession.resetIdCnt();
         repo = mock(UserRepository.class);
         wordSubmissionService = mock(WordSubmissionService.class);
+        sessionsToCleanUp.clear();
+    }
+
+    /**
+     * Cleans up any started sessions after each test so timer threads do not
+     * remain alive after test execution.
+     */
+    @AfterEach
+    public void tearDown() {
+        for (GameSession session : sessionsToCleanUp) {
+            try {
+                if (session.isStarted()) {
+                    session.endGame();
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        sessionsToCleanUp.clear();
+    }
+
+    /**
+     * AI-generated helper method.
+     *
+     * <p>Creates a new session and registers it for automatic cleanup after the
+     * test completes.</p>
+     */
+    private GameSession newSession(int maxPlayers) {
+        GameSession session = new GameSession(maxPlayers, repo, wordSubmissionService);
+        sessionsToCleanUp.add(session);
+        return session;
     }
 
     /**
@@ -38,7 +76,7 @@ public class GameSessionTest {
      */
     @Test
     public void constructorValidArgumentsInitializesFields() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
 
         assertEquals(0, session.getId());
         assertEquals(2, session.getMaxPlayers());
@@ -90,7 +128,7 @@ public class GameSessionTest {
      */
     @Test
     public void startGameMarksSessionStartedAndReturnsBoard() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
 
         BoggleBoard board = session.startGame();
 
@@ -105,7 +143,7 @@ public class GameSessionTest {
      */
     @Test
     public void startGameTwiceThrowsException() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
         session.startGame();
 
         assertThrows(IllegalStateException.class, session::startGame);
@@ -118,7 +156,7 @@ public class GameSessionTest {
      */
     @Test
     public void addPlayerNullThrowsException() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
 
         assertThrows(IllegalArgumentException.class, () -> session.addPlayer(null));
     }
@@ -131,7 +169,7 @@ public class GameSessionTest {
      */
     @Test
     public void addPlayerAddsPlayerToSession() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
         Player player = mock(Player.class);
         when(player.getUsername()).thenReturn("alice");
 
@@ -147,7 +185,7 @@ public class GameSessionTest {
      */
     @Test
     public void addDuplicatePlayerThrowsException() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
         Player player = mock(Player.class);
         when(player.getUsername()).thenReturn("alice");
 
@@ -164,7 +202,7 @@ public class GameSessionTest {
      */
     @Test
     public void addPlayerWhenSessionFullThrowsException() {
-        GameSession session = new GameSession(1, repo, wordSubmissionService);
+        GameSession session = newSession(1);
 
         Player player1 = mock(Player.class);
         when(player1.getUsername()).thenReturn("alice");
@@ -185,7 +223,7 @@ public class GameSessionTest {
      */
     @Test
     public void addPlayerAfterGameStartedThrowsException() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
         Player player = mock(Player.class);
         when(player.getUsername()).thenReturn("alice");
 
@@ -202,7 +240,7 @@ public class GameSessionTest {
      */
     @Test
     public void isPlayerAddedNullUsernameThrowsException() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
 
         assertThrows(IllegalArgumentException.class, () -> session.isPlayerAdded(null));
     }
@@ -214,7 +252,7 @@ public class GameSessionTest {
      */
     @Test
     public void getScoreNullUsernameThrowsException() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
 
         assertThrows(IllegalArgumentException.class, () -> session.getScore(null));
     }
@@ -227,7 +265,7 @@ public class GameSessionTest {
      */
     @Test
     public void getAcceptedWordsNullUsernameThrowsException() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
 
         assertThrows(IllegalArgumentException.class, () -> session.getAcceptedWords(null));
     }
@@ -240,7 +278,7 @@ public class GameSessionTest {
      */
     @Test
     public void submitWordBeforeGameStartedThrowsException() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
 
         assertThrows(IllegalStateException.class,
                 () -> session.submitWord("alice", "apple"));
@@ -254,7 +292,7 @@ public class GameSessionTest {
      */
     @Test
     public void submitWordForMissingPlayerThrowsException() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
         session.startGame();
 
         assertThrows(IllegalArgumentException.class,
@@ -269,7 +307,7 @@ public class GameSessionTest {
      */
     @Test
     public void endGameBeforeStartThrowsException() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
 
         assertThrows(IllegalStateException.class, session::endGame);
     }
@@ -282,7 +320,7 @@ public class GameSessionTest {
      */
     @Test
     public void endGameResetsSessionAndFlushesPlayers() {
-        GameSession session = new GameSession(2, repo, wordSubmissionService);
+        GameSession session = newSession(2);
 
         Player player1 = mock(Player.class);
         when(player1.getUsername()).thenReturn("alice");
@@ -315,10 +353,115 @@ public class GameSessionTest {
      */
     @Test
     public void sessionIdsIncrementAcrossInstances() {
-        GameSession session1 = new GameSession(2, repo, wordSubmissionService);
-        GameSession session2 = new GameSession(2, repo, wordSubmissionService);
+        GameSession session1 = newSession(2);
+        GameSession session2 = newSession(2);
 
         assertEquals(0, session1.getId());
         assertEquals(1, session2.getId());
+    }
+
+    /**
+     * AI-generated test method.
+     *
+     * <p>Verifies that startGame initializes the timer-related fields and stores
+     * a scheduled task handle.</p>
+     */
+    @Test
+    public void startGameInitializesTimerFieldsAndScheduledTask() throws Exception {
+        GameSession session = newSession(2);
+
+        session.startGame();
+
+        long startTime = (long) getPrivateField(session, "startTime");
+        long endTime = (long) getPrivateField(session, "endTime");
+        ScheduledFuture<?> future =
+                (ScheduledFuture<?>) getPrivateField(session, "scheduledFuture");
+
+        assertTrue(startTime > 0);
+        assertTrue(endTime > startTime);
+        assertNotNull(future);
+    }
+
+    /**
+     * AI-generated test method.
+     *
+     * <p>Verifies that endGame cancels the scheduled timer task and clears the
+     * timer-related fields.</p>
+     */
+    @Test
+    public void endGameCancelsTimerAndClearsTimerFields() throws Exception {
+        GameSession session = newSession(2);
+
+        session.startGame();
+
+        ScheduledFuture<?> future =
+                (ScheduledFuture<?>) getPrivateField(session, "scheduledFuture");
+
+        session.endGame();
+
+        assertTrue(future.isCancelled());
+        assertNull(getPrivateField(session, "scheduledFuture"));
+        assertEquals(-1L, getPrivateField(session, "startTime"));
+        assertEquals(-1L, getPrivateField(session, "endTime"));
+        assertFalse(session.isStarted());
+    }
+
+    /**
+     * AI-generated test method.
+     *
+     * <p>Verifies that updateFrontendTimer ends the game when the current time
+     * has passed the session end time.</p>
+     */
+    @Test
+    public void updateFrontendTimerAfterExpirationEndsGame() throws Exception {
+        GameSession session = newSession(2);
+
+        session.startGame();
+
+        ScheduledFuture<?> future =
+                (ScheduledFuture<?>) getPrivateField(session, "scheduledFuture");
+        future.cancel(false);
+
+        setPrivateField(session, "endTime", System.currentTimeMillis() - 1L);
+
+        invokePrivateNoArgMethod(session, "updateFrontendTimer");
+
+        assertFalse(session.isStarted());
+        assertNull(getPrivateField(session, "scheduledFuture"));
+        assertEquals(-1L, getPrivateField(session, "startTime"));
+        assertEquals(-1L, getPrivateField(session, "endTime"));
+    }
+
+    /**
+     * AI-generated helper method.
+     *
+     * <p>Returns the value of a private field by reflection.</p>
+     */
+    private Object getPrivateField(Object target, String fieldName) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return field.get(target);
+    }
+
+    /**
+     * AI-generated helper method.
+     *
+     * <p>Sets the value of a private field by reflection.</p>
+     */
+    private void setPrivateField(Object target, String fieldName, Object value) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
+    }
+
+    /**
+     * AI-generated helper method.
+     *
+     * <p>Invokes a private no-argument method by reflection.</p>
+     */
+    private void invokePrivateNoArgMethod(Object target, String methodName) throws Exception {
+        Method method = target.getClass().getDeclaredMethod(methodName);
+        method.setAccessible(true);
+        method.invoke(target);
     }
 }
