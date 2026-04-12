@@ -26,16 +26,23 @@ public class GameService {
 
     private Map<Integer, GameSession> sessions;
 
+    private final GameEventService gameEventService;
+
     /**
      * The constructor for GameService, this will create all game sessions
      *
      * @param repo           auto-created by Sprint Boot
      * @param userRegulation the service that contains all login information
      */
-    public GameService(UserRepository repo, UserRegulationService userRegulation, WordSubmissionService wordSubmissionService) {
+    public GameService(UserRepository repo,
+                       UserRegulationService userRegulation,
+                       WordSubmissionService wordSubmissionService,
+                       GameEventService gameEventService
+    ) {
         this.repo = repo;
         this.userRegulation = userRegulation;
         this.wordSubmissionService = wordSubmissionService;
+        this.gameEventService = gameEventService;
         calc = new ScoreCalculator();
         sessions = new HashMap<Integer, GameSession>();
         // TODO: specify the size (number of players) of each game session

@@ -18,18 +18,20 @@ public class GameStreamController {
         this.gameEventService = gameEventService;
     }
 
-    // SSE connection endpoint
     @GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter stream() {
-        return gameEventService.subscribe();
+    public SseEmitter stream(@RequestParam String sessionId) {
+        return gameEventService.subscribe(sessionId);
     }
 
-    // test purpose event
     @PostMapping("/test-event")
-    public ResponseEntity<String> sendTestEvent() {
-        gameEventService.broadcast(
+    public ResponseEntity<String> sendTestEvent(@RequestParam String sessionId) {
+        gameEventService.broadcastToSession(
+                sessionId,
                 "test",
-                Map.of("message", "hello from backend")
+                Map.of(
+                        "message", "hello from backend",
+                        "sessionId", sessionId
+                )
         );
         return ResponseEntity.ok("sent");
     }
