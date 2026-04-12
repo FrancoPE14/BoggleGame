@@ -41,6 +41,8 @@ export default function Login() {
                 alert("You have been successfully logged in!")
                 // Persist auth status so refreshes keep the client-side login context in sync.
                 window.sessionStorage.setItem('loginStatus', JSON.stringify(true));
+                // store for profile page
+                window.sessionStorage.setItem('username', username);
                 setLoginStatus(true);
                 
                 router.push("/")
