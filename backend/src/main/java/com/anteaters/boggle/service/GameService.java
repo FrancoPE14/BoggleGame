@@ -80,8 +80,20 @@ public class GameService {
         if(!sessions.containsKey(sessionId)){
             throw new IllegalArgumentException("The session of this id does not exists");
         }
+
         GameSession session = sessions.get(sessionId);
-        return session.startGame();
+        BoggleBoard board = session.startGame();
+
+        gameEventService.broadcastToSession(
+                String.valueOf(sessionId),
+                "game-started",
+                Map.of(
+                        "sessionId", sessionId,
+                        "board", board
+                )
+        );
+
+        return board;
     }
 
     /**
@@ -91,13 +103,11 @@ public class GameService {
      * @param username the username of the player to be added
      */
     public void addPlayer(int sessionId, String username){
-        // parameter check - sessionId
         if(!sessions.containsKey(sessionId)){
             throw new IllegalArgumentException("The session of this id does not exists");
         }
         GameSession session = sessions.get(sessionId);
 
-        // parameter check - username
         User user = userRegulation.getUser(username);
         if (user == null) {
             throw new IllegalArgumentException("The user is not logged in");
@@ -105,6 +115,17 @@ public class GameService {
 
         Player player = new Player(user, calc);
         session.addPlayer(player);
+
+        gameEventService.broadcastToSession(
+                String.valueOf(sessionId),
+                "lobby-update",
+                Map.of(
+                        "sessionId", sessionId,
+                        "username", username,
+                        "playerCount", session.getNumPlayers(),
+                        "maxPlayers", session.getMaxPlayers()
+                )
+        );
     }
 
     /**
@@ -127,8 +148,26 @@ public class GameService {
             throw new IllegalArgumentException("The session of this id does not exists");
         }
         GameSession session = sessions.get(sessionId);
+        WordSubmissionResult result = session.submitWord(username, word);
 
-        return session.submitWord(username, word);
+        gameEventService.broadcastToSession(
+                String.valueOf(sessionId),
+                "game-state",
+                Map.of(
+                        "sessionId", sessionId,
+                        "username", username,
+                        "originalWord", result.getOriginalWord(),
+                        "normalizedWord", result.getNormalizedWord(),
+                        "accepted", result.isAccepted(),
+                        "duplicate", result.isDuplicate(),
+                        "valid", result.isValid(),
+                        "pointsAwarded", result.getPointsAwarded(),
+                        "currentScore", result.getCurrentScore(),
+                        "acceptedWords", result.getAcceptedWords()
+                )
+        );
+
+        return result;
     }
 
     /**
@@ -178,5 +217,11 @@ public class GameService {
         GameSession session = sessions.get(sessionId);
 
         session.endGame();
+
+        gameEventService.broadcastToSession(
+                String.valueOf(sessionId),
+                "game-ended",
+                Map.of("sessionId", sessionId)
+        );
     }
 }
