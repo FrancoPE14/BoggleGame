@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useCallback } from "react";
-import BoggleBoard from "../components/boggle-board";
+import { useState, useCallback, useRef } from "react";
+import BoggleBoard, { BoggleBoardHandle } from "../components/boggle-board";
 import WordInput from "../components/word-input";
 import ScoreDisplay from "../components/score-display";
 import Timer from "../components/timer";
@@ -10,16 +10,18 @@ import useWordVerification from "../components/use-word-verification";
 
 export default function Home() {
   const defaultBoard = [
-    ["T", "E", "S", "T", "S"], // 1
-    ["W", "O", "R", "D", "S"], // 2
-    ["G", "A", "M", "E", "S"], // 3
-    ["P", "L", "A", "Y", "S"], // 4
-    ["B", "O", "G", "G", "L"], // 5
+    ["T", "E", "S", "T", "S"],
+    ["W", "O", "R", "D", "S"],
+    ["G", "A", "M", "E", "S"],
+    ["P", "L", "A", "Y", "S"],
+    ["B", "O", "G", "G", "L"],
   ];
 
   const [gameActive, setGameActive] = useState(false);
   const [board, setBoard] = useState(defaultBoard);
-  const { submittedWords, verifyWord, resetWords, currentScore } = useWordVerification();
+  const { submittedWords, verifyWord, resetWords, currentScore } =
+    useWordVerification();
+  const boggleBoardRef = useRef<BoggleBoardHandle>(null);
 
   function generateBoard() {
     fetch("http://localhost:8080/api/generate")
@@ -50,19 +52,27 @@ export default function Home() {
     resetWords();
   }, [resetWords]);
 
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    boggleBoardRef.current?.handleMouseDown(e);
+  }, []);
+
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    boggleBoardRef.current?.handleMouseUp(e);
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+    <div
+      className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black"
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+    >
       <main className="flex min-h-screen w-full max-w-3xl mx-auto flex-col items-center justify-center py-32 px-16 bg-white dark:bg-black">
-        <Image
-          src="/LOGO.png"
-          width={100}
-          height={100}
-          alt="Logo Image"
-        ></Image>
+        <Image src="/LOGO.png" width={100} height={100} alt="Logo Image" />
 
         <Timer onGameStart={handleGameStart} onGameEnd={handleGameEnd} />
 
         <BoggleBoard
+          ref={boggleBoardRef}
           submittedWords={submittedWords}
           verifyWord={verifyWord}
           gameActive={gameActive}
@@ -72,7 +82,10 @@ export default function Home() {
         {gameActive && (
           <>
             <WordInput submittedWords={submittedWords} />
-            <ScoreDisplay submittedWords={submittedWords} currentScore={currentScore} />
+            <ScoreDisplay
+              submittedWords={submittedWords}
+              currentScore={currentScore}
+            />
           </>
         )}
       </main>
