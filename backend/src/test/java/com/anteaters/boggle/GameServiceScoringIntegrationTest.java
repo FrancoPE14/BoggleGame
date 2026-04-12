@@ -14,6 +14,8 @@ import com.anteaters.boggle.service.WordVerificationService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import com.anteaters.boggle.service.GameEventService;
+import static org.mockito.Mockito.mock;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -58,7 +60,8 @@ public class GameServiceScoringIntegrationTest {
         userRegulation = mock(UserRegulationService.class);
 
         GameSession.resetIdCnt();
-        gameService = new GameService(repo, userRegulation, submissionService);
+        GameEventService gameEventService = mock(GameEventService.class);
+        gameService = new GameService(repo, userRegulation, submissionService, gameEventService);
     }
 
     @Test
