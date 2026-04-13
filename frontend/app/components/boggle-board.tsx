@@ -35,7 +35,12 @@ const BoggleBoard = forwardRef<BoggleBoardHandle, BoggleBoardProps>(
     const visitedRef = useRef(new Set<string>());
     const mouseDownRef = useRef(false);
     const wordRef = useRef("");
+    const audioClickRef = useRef<HTMLAudioElement | null>(null);
 
+    /**
+     * When mouse down, attempt to add letters to the input string
+     * The letter being added is based on where the mouse is hovering over
+     */
     const handleMouseDown = (e: React.MouseEvent) => {
       e.preventDefault();
       mouseDownRef.current = true;
@@ -92,7 +97,8 @@ const BoggleBoard = forwardRef<BoggleBoardHandle, BoggleBoardProps>(
     };
 
     /**
-     * Adds current letter to input string and highlights its tile.
+     * Attempts to adds current letter to input string and highlights its tile.
+     * If the letter button has already been selected, do nothing
      */
     const addCurrentLetter = () => {
       if (!mouseDownRef.current) return;
@@ -109,6 +115,19 @@ const BoggleBoard = forwardRef<BoggleBoardHandle, BoggleBoardProps>(
       wordRef.current = wordRef.current + letter;
       setInputWord((prev) => prev + letter);
       setHighlightedTiles(new Set(visitedRef.current));
+
+      if (letter === "") return;
+      playClickSound();
+    };
+
+    /**
+     * Play click sound for letter button selection
+     */
+    const playClickSound = () => {
+      if (audioClickRef.current) {
+        audioClickRef.current.currentTime = 0;
+        audioClickRef.current.play();
+      }
     };
 
     useImperativeHandle(ref, () => ({
@@ -117,7 +136,8 @@ const BoggleBoard = forwardRef<BoggleBoardHandle, BoggleBoardProps>(
     }));
 
     return (
-      <div>
+      <>
+        <audio ref={audioClickRef} src="/sounds/click.wav" preload="auto" />
         <div
           style={{
             display: "flex",
@@ -150,7 +170,7 @@ const BoggleBoard = forwardRef<BoggleBoardHandle, BoggleBoardProps>(
             )),
           )}
         </div>
-      </div>
+      </>
     );
   },
 );
