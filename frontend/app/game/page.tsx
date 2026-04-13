@@ -62,13 +62,11 @@ export default function Home() {
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black"
+      className="flex min-h-screen items-center justify-center bg-amber-100 font-sans dark:bg-amber-100"
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
     >
-      <main className="flex min-h-screen w-full max-w-3xl mx-auto flex-col items-center justify-center py-32 px-16 bg-white dark:bg-black">
-        <Image src="/LOGO.png" width={100} height={100} alt="Logo Image" />
-
+      <main className="flex min-h-screen w-full max-w-3xl mx-auto flex-col items-center justify-center py-32 px-16 bg-amber-100 dark:bg-amber-100">
         <Timer onGameStart={handleGameStart} onGameEnd={handleGameEnd} />
 
         <BoggleBoard

@@ -22,13 +22,18 @@ export default function LetterButton({
   };
 
   return (
-    <button
-      onClick={handleMouseEnter}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className={`
+    <div
+      style={{ backgroundColor: "#f5d96b" }}
+      className="flex items-center justify-center"
+    >
+      <button
+        onClick={handleMouseEnter}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        style={{ width: 60, height: 60 }}
+        className={`
         inline-flex items-center justify-center
-        rounded-lg w-full h-full
+        rounded-lg 
         text-xl font-bold select-none
         transition-all duration-150
         ${
@@ -37,8 +42,9 @@ export default function LetterButton({
             : "bg-amber-200 text-gray-700 hover:bg-amber-100"
         }
       `}
-    >
-      {letter}
-    </button>
+      >
+        {letter}
+      </button>
+    </div>
   );
 }

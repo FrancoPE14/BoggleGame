@@ -123,6 +123,7 @@ const BoggleBoard = forwardRef<BoggleBoardHandle, BoggleBoardProps>(
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            marginTop: 15,
           }}
         >
           <h3>{inputWord === "" ? "Make a word!" : inputWord}</h3>
@@ -131,7 +132,10 @@ const BoggleBoard = forwardRef<BoggleBoardHandle, BoggleBoardProps>(
         <div
           className="grid gap-2 w-[90vw] max-w-105 aspect-square"
           style={{
+            backgroundColor: "#333b47",
+            padding: 10,
             gridTemplateColumns: `repeat(${BOARD_SIZE}, minmax(0, 1fr))`,
+            gridTemplateRows: `repeat(${BOARD_SIZE}, minmax(0, 1fr))`,
           }}
         >
           {board.map((rows, row) =>
