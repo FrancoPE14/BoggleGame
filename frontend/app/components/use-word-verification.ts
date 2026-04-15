@@ -78,7 +78,7 @@ export default function useWordVerification(): {
                 // originalWord, normalizedWord, accepted, duplicate, valid,
                 // pointsAwarded, currentScore, acceptedWords.
                 const res = await fetch(
-                    `http://localhost:8080/api/verify?word=${encodeURIComponent(normalized)}`,
+                    `/api/verify?word=${encodeURIComponent(normalized)}`,
                 );
                 const data: { word: string; valid: boolean } = await res.json();
 

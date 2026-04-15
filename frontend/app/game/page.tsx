@@ -22,7 +22,7 @@ export default function Home() {
   const { submittedWords, verifyWord, resetWords, currentScore } = useWordVerification();
 
   function generateBoard() {
-    fetch("http://localhost:8080/api/generate")
+    fetch("/api/generate")
       .then((res) => res.json())
       .then((b) => {
         setBoard(b);
