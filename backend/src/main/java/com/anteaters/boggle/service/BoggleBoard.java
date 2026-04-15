@@ -6,8 +6,8 @@ import java.util.Random;
 
 public class BoggleBoard {
 
-    int boardSize; // static size for now; resizable boards later as enhancement
-    Dice[][] grid = new Dice[boardSize][boardSize];
+    int boardSize;
+    Dice[][] grid;
     LinkedList<Dice> currentEntry = new LinkedList<>(); // stores the user's current entry as a list of dice
     LinkedList<Dice> dicePool = new LinkedList<Dice>();
 
@@ -28,7 +28,20 @@ public class BoggleBoard {
         if(size > 10){
             throw new Exception("Board cannot be larger than size 10x10");
         }
+
+        boardSize = size;
+        grid = new Dice[boardSize][boardSize];
         populateBoard();
+    }
+
+    /**
+     * Default constructor. Creates the standard 5x5 boggle board.
+     */
+    public boggleBoard{
+        boardSize = 5;
+        grid = new Dice[5][5];
+        populateBoard();
+
     }
 
     private void populateBoard(){
