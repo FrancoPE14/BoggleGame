@@ -159,6 +159,10 @@ public class GameSession{
         return wordSubmissionService.submitWord(word, player.getTracker());
     }
 
+    public int getNumPlayers() {
+        return numPlayers;
+    }
+
     /**
      * End the game session and flushes all player data to the database
      *
