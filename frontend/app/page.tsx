@@ -8,7 +8,7 @@ export default function Home() {
 
       <div>
         <Button
-          href="/game"
+          href="/setting"
           variant="outline-dark"
           size="lg"
           className="mt-1 mb-1 ms-1 me-1"
