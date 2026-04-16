@@ -19,7 +19,7 @@ public class BoggleBoard {
      * @param size the desired size of the boggle board
      * @throws Exception if the size is outside the allowable constraints.
      */
-    public boggleBoard(int size){
+    public BoggleBoard(int size){
 
         if(size < 2){ // size limitations currently aritrary
             throw new Exception("Board must be at least size 2x2");
@@ -37,7 +37,7 @@ public class BoggleBoard {
     /**
      * Default constructor. Creates the standard 5x5 boggle board.
      */
-    public boggleBoard{
+    public BoggleBoard{
         boardSize = 5;
         grid = new Dice[5][5];
         populateBoard();
