@@ -16,6 +16,10 @@ import java.util.HashMap;
  * This service owns the registry of available sessions and coordinates
  * session-level operations such as joining a lobby, starting a game,
  * submitting words, and broadcasting SSE updates to connected clients.
+ *
+ * GameService is intentionally kept as the session registry and request router.
+ * Session-local lifecycle state, such as host ownership, completion tracking,
+ * and round-local endgame state, belongs to GameSession.
  */
 @Service
 public class GameService {
@@ -309,6 +313,10 @@ public class GameService {
 
     /**
      * Ends a game session and flushes all player data to the database.
+     *
+     * GameService intentionally remains the orchestration layer that triggers
+     * session shutdown and broadcasts the resulting game-ended event. The session-local
+     * lifecycle state itself is still owned by GameSession.
      *
      * @param sessionId the id of the game session
      */
