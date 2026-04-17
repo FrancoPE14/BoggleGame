@@ -3,6 +3,7 @@ package com.anteaters.boggle.service;
 import org.springframework.stereotype.Service;
 import com.anteaters.boggle.repository.UserRepository;
 import com.anteaters.boggle.entity.User;
+import com.anteaters.boggle.model.FinishAckResponse;
 import com.anteaters.boggle.model.SessionSummary;
 import com.anteaters.boggle.model.WordSubmissionResult;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ public class GameService {
 
         // for now all sessions are 4 players
         for(int i=0; i<MAX_SESSIONS; i++){
-            GameSession session = new GameSession(4, repo, wordSubmissionService); // create the fixed pool of lobby sessions
+            GameSession session = new GameSession(4, repo, wordSubmissionService, gameEventService); // create the fixed pool of lobby sessions
             sessions.put(session.getId(), session);
         }
     }
@@ -200,6 +201,45 @@ public class GameService {
         );
 
         return board;
+    }
+
+    /**
+     * Records that a player has finished the current round.
+     *
+     * The caller must be logged in and must already belong to the target session.
+     * The session itself owns the round-ended check and all finished-player tracking.
+     *
+     * @param sessionId id of the target session
+     * @param username username of the player sending the finish acknowledgement
+     * @return response describing the resulting session completion state
+     * @throws IllegalArgumentException if the session does not exist or the user is not logged in
+     * @throws IllegalStateException if the player is not in the session or the round has not ended yet
+     */
+    public FinishAckResponse acknowledgePlayerFinished(int sessionId, String username) {
+        if(!sessions.containsKey(sessionId)){
+            throw new IllegalArgumentException("The session of this id does not exists");
+        }
+
+        User user = userRegulation.getUser(username);
+        if (user == null) {
+            throw new IllegalArgumentException("The user is not logged in");
+        }
+
+        GameSession session = sessions.get(sessionId);
+
+        if (!session.isPlayerAdded(username)) {
+            throw new IllegalStateException("Player is not in this session");
+        }
+
+        session.markPlayerFinished(username);
+
+        return new FinishAckResponse(
+                sessionId,
+                username,
+                session.isRoundEnded(),
+                session.isPlayerFinished(username),
+                session.haveAllPlayersFinished()
+        );
     }
 
     /**
