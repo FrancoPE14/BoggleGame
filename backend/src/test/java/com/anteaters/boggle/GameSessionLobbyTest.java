@@ -1,12 +1,16 @@
-package com.anteaters.boggle.service;
+package com.anteaters.boggle;
 
 import com.anteaters.boggle.entity.User;
 import com.anteaters.boggle.repository.UserRepository;
+import com.anteaters.boggle.service.GameSession;
+import com.anteaters.boggle.service.Player;
+import com.anteaters.boggle.service.ScoreCalculator;
+import com.anteaters.boggle.service.WordSubmissionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 public class GameSessionLobbyTest {
 
@@ -24,15 +28,16 @@ public class GameSessionLobbyTest {
         session = new GameSession(3, repo, wordSubmissionService);
     }
 
+    private User mockUser(String username) {
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn(username);
+        return user;
+    }
+
     @Test
     void firstAddedPlayerBecomesHost() {
-        User user = mock(User.class);
-        Player player = new Player(user, calc) {
-            @Override
-            public String getUsername() {
-                return "alice";
-            }
-        };
+        User alice = mockUser("alice");
+        Player player = new Player(alice, calc);
 
         session.addPlayer(player);
 

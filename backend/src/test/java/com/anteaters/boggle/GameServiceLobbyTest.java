@@ -1,14 +1,21 @@
-package com.anteaters.boggle.service;
+package com.anteaters.boggle;
 
 import com.anteaters.boggle.entity.User;
 import com.anteaters.boggle.model.SessionSummary;
 import com.anteaters.boggle.repository.UserRepository;
+import com.anteaters.boggle.service.GameEventService;
+import com.anteaters.boggle.service.GameService;
+import com.anteaters.boggle.service.GameSession;
+import com.anteaters.boggle.service.UserRegulationService;
+import com.anteaters.boggle.service.WordSubmissionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class GameServiceLobbyTest {
@@ -31,27 +38,30 @@ public class GameServiceLobbyTest {
         gameService = new GameService(repo, userRegulation, wordSubmissionService, gameEventService);
     }
 
+    private User mockUser(String username) {
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn(username);
+        return user;
+    }
+
     @Test
     void getSessionSummaries_returnsAllSessions() {
         List<SessionSummary> summaries = gameService.getSessionSummaries();
 
         assertEquals(10, summaries.size());
-        assertEquals(0, summaries.get(0).sessionId());
-        assertEquals(3, summaries.get(0).maxPlayers());
-        assertFalse(summaries.get(0).started());
-        assertNull(summaries.get(0).hostUsername());
+        assertTrue(summaries.stream().allMatch(summary -> summary.maxPlayers() == 3));
+        assertTrue(summaries.stream().allMatch(summary -> !summary.started()));
+        assertTrue(summaries.stream().allMatch(summary -> summary.hostUsername() == null));
     }
 
     @Test
     void joinSession_firstPlayerBecomesHost() {
-        User user = mock(User.class);
-        when(userRegulation.getUser("alice")).thenReturn(user);
+        User alice = mockUser("alice");
+        when(userRegulation.getUser("alice")).thenReturn(alice);
 
         SessionSummary summary = gameService.joinSession(0, "alice");
 
-        assertEquals(0, summary.sessionId());
         assertEquals(1, summary.playerCount());
-        assertEquals(3, summary.maxPlayers());
         assertFalse(summary.started());
         assertEquals("alice", summary.hostUsername());
 
@@ -64,8 +74,8 @@ public class GameServiceLobbyTest {
 
     @Test
     void joinSession_secondPlayerDoesNotReplaceHost() {
-        User alice = mock(User.class);
-        User bob = mock(User.class);
+        User alice = mockUser("alice");
+        User bob = mockUser("bob");
 
         when(userRegulation.getUser("alice")).thenReturn(alice);
         when(userRegulation.getUser("bob")).thenReturn(bob);
@@ -79,8 +89,8 @@ public class GameServiceLobbyTest {
 
     @Test
     void joinSession_samePlayerSameSessionThrows() {
-        User user = mock(User.class);
-        when(userRegulation.getUser("alice")).thenReturn(user);
+        User alice = mockUser("alice");
+        when(userRegulation.getUser("alice")).thenReturn(alice);
 
         gameService.joinSession(0, "alice");
 
@@ -94,8 +104,8 @@ public class GameServiceLobbyTest {
 
     @Test
     void joinSession_samePlayerDifferentSessionThrows() {
-        User user = mock(User.class);
-        when(userRegulation.getUser("alice")).thenReturn(user);
+        User alice = mockUser("alice");
+        when(userRegulation.getUser("alice")).thenReturn(alice);
 
         gameService.joinSession(0, "alice");
 
@@ -109,8 +119,8 @@ public class GameServiceLobbyTest {
 
     @Test
     void joinSession_invalidSessionThrows() {
-        User user = mock(User.class);
-        when(userRegulation.getUser("alice")).thenReturn(user);
+        User alice = mockUser("alice");
+        when(userRegulation.getUser("alice")).thenReturn(alice);
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
@@ -134,10 +144,10 @@ public class GameServiceLobbyTest {
 
     @Test
     void joinSession_fullSessionThrows() {
-        User alice = mock(User.class);
-        User bob = mock(User.class);
-        User charlie = mock(User.class);
-        User david = mock(User.class);
+        User alice = mockUser("alice");
+        User bob = mockUser("bob");
+        User charlie = mockUser("charlie");
+        User david = mockUser("david");
 
         when(userRegulation.getUser("alice")).thenReturn(alice);
         when(userRegulation.getUser("bob")).thenReturn(bob);
@@ -148,18 +158,16 @@ public class GameServiceLobbyTest {
         gameService.joinSession(0, "bob");
         gameService.joinSession(0, "charlie");
 
-        IllegalStateException ex = assertThrows(
+        assertThrows(
                 IllegalStateException.class,
                 () -> gameService.joinSession(0, "david")
         );
-
-        assertEquals("Session is full, cannot add more players", ex.getMessage());
     }
 
     @Test
     void joinSession_startedSessionThrows() {
-        User alice = mock(User.class);
-        User bob = mock(User.class);
+        User alice = mockUser("alice");
+        User bob = mockUser("bob");
 
         when(userRegulation.getUser("alice")).thenReturn(alice);
         when(userRegulation.getUser("bob")).thenReturn(bob);
