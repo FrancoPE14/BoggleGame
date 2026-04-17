@@ -32,7 +32,7 @@ public class GameService {
      * Constructs the multiplayer game service and creates the fixed pool of sessions.
      *
      * For the current implementation, all sessions are created up front and each session
-     * is configured to support up to three players.
+     * is configured to support up to four players.
      *
      * @param repo auto-created by Spring Boot
      * @param userRegulation service that contains login/session user information
@@ -51,7 +51,7 @@ public class GameService {
         calc = new ScoreCalculator();
         sessions = new HashMap<Integer, GameSession>();
 
-        // for now all sessions are 3 players
+        // for now all sessions are 4 players
         for(int i=0; i<MAX_SESSIONS; i++){
             GameSession session = new GameSession(4, repo, wordSubmissionService); // create the fixed pool of lobby sessions
             sessions.put(session.getId(), session);
@@ -65,7 +65,6 @@ public class GameService {
      * @return a non-negative session id, or -1 if the user is not assigned to any session
      */
     private int getSessionId(String username){
-        // use the map iterator to linearly search through all entries
         for(Map.Entry<Integer, GameSession> e : sessions.entrySet()){
             if(e.getValue().isPlayerAdded(username)){
                 return e.getKey();
@@ -85,7 +84,7 @@ public class GameService {
     public List<SessionSummary> getSessionSummaries() {
         return sessions.values()
                 .stream()
-                .map(GameSession::toSummary) // convert internal session state into a lobby-facing DTO
+                .map(GameSession::toSummary)
                 .toList();
     }
 
@@ -130,7 +129,7 @@ public class GameService {
         }
 
         Player player = new Player(user, calc);
-        session.addPlayer(player); // session-level validation handles duplicate, full, and started-state checks
+        session.addPlayer(player);
 
         SessionSummary summary = session.toSummary();
 
@@ -143,7 +142,7 @@ public class GameService {
                         "playerCount", summary.playerCount(),
                         "maxPlayers", summary.maxPlayers(),
                         "hostUsername", summary.hostUsername(),
-                        "joinedUsername", username // indicates which player most recently entered the lobby
+                        "joinedUsername", username
                 )
         );
 
@@ -153,19 +152,38 @@ public class GameService {
     /**
      * Starts a game for the specified session.
      *
-     * A game cannot be started if the session id is invalid or if the session
-     * itself rejects the start request.
+     * Only the session host is allowed to start the game. The caller must be
+     * logged in, must belong to the target session, and must match the current host.
+     *
+     * On success, the generated board is broadcast to every player connected to
+     * the session through the game-started SSE event.
      *
      * @param sessionId the session that should start
+     * @param username the user requesting the start action
      * @return the BoggleBoard object associated with that session
-     * @throws IllegalArgumentException if the session id does not exist
+     * @throws IllegalArgumentException if the session id does not exist or the user is not logged in
+     * @throws IllegalStateException if the user is not in the session or is not the host
      */
-    public BoggleBoard startGame(int sessionId) {
+    public BoggleBoard startGame(int sessionId, String username) {
         if(!sessions.containsKey(sessionId)){
             throw new IllegalArgumentException("The session of this id does not exists");
         }
 
+        User user = userRegulation.getUser(username);
+        if (user == null) {
+            throw new IllegalArgumentException("The user is not logged in");
+        }
+
         GameSession session = sessions.get(sessionId);
+
+        if (!session.isPlayerAdded(username)) {
+            throw new IllegalStateException("Player is not in this session");
+        }
+
+        if (!session.isHost(username)) {
+            throw new IllegalStateException("Only the host can start the game");
+        }
+
         BoggleBoard board = session.startGame();
 
         gameEventService.broadcastToSession(
@@ -231,7 +249,6 @@ public class GameService {
      * @return result of submission including score and accepted-word state
      */
     public WordSubmissionResult submitWord(int sessionId, String username, String word) {
-        // parameter check - sessionId
         if(!sessions.containsKey(sessionId)){
             throw new IllegalArgumentException("The session of this id does not exists");
         }
@@ -266,7 +283,6 @@ public class GameService {
      * @return current score
      */
     public int getScore(int sessionId, String username) {
-        // parameter check - sessionId
         if(!sessions.containsKey(sessionId)){
             throw new IllegalArgumentException("The session of this id does not exists");
         }
@@ -283,7 +299,6 @@ public class GameService {
      * @return accepted words in submission order
      */
     public ArrayList<String> getAcceptedWords(int sessionId, String username) {
-        // parameter check - sessionId
         if(!sessions.containsKey(sessionId)){
             throw new IllegalArgumentException("The session of this id does not exists");
         }
@@ -298,7 +313,6 @@ public class GameService {
      * @param sessionId the id of the game session
      */
     public void endGame(int sessionId){
-        // parameter check - sessionId
         if(!sessions.containsKey(sessionId)){
             throw new IllegalArgumentException("The session of this id does not exists");
         }

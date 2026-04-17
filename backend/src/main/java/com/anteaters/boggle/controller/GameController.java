@@ -8,13 +8,26 @@ import com.anteaters.boggle.model.SessionSummary;
 import com.anteaters.boggle.model.WordSubmissionResult;
 import com.anteaters.boggle.service.GameService;
 import com.anteaters.boggle.service.BoggleBoard;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * REST controller for multiplayer game operations.
+ *
+ * This controller exposes session listing, lobby join, game start,
+ * word submission, and manual game end endpoints.
+ */
 @RestController
 public class GameController{
     private final GameService service; // service layer that owns multiplayer session operations
 
+    /**
+     * Creates the controller with the service dependency used by all game endpoints.
+     *
+     * @param service multiplayer game service
+     */
     public GameController(GameService service){
         this.service = service;
     }
@@ -57,28 +70,34 @@ public class GameController{
      *
      * Usage example: POST /api/start?sessionId=0&username=user
      *
+     * Only the current host of the session may start the game. The username is
+     * forwarded to the service layer so the backend can enforce host-only start behavior.
+     *
      * @param sessionId the id of the session to start
-     * @param username username of the user who wants to start the game, currently unused
-     * @return JSON representing the call status
+     * @param username username of the user requesting the start action
+     * @return JSON representing whether the request succeeded and, if successful, the board state
      */
     @PostMapping("/api/start")
     public Map<String, Object> startGame(@RequestParam int sessionId, @RequestParam String username) {
         boolean succeed = true;
         BoggleBoard board = null;
         String errMsg = null;
+
         try {
-            board = service.startGame(sessionId);
-        }catch(Exception e){
+            board = service.startGame(sessionId, username);
+        } catch(Exception e){
             succeed = false;
             errMsg = e.getMessage();
         }
-        return Map.of(
-                "status", succeed,
-                "username", username,
-                "sessionId", sessionId,
-                "board", board,
-                "err", errMsg
-        );
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", succeed);
+        response.put("username", username);
+        response.put("sessionId", sessionId);
+        response.put("board", board);
+        response.put("err", errMsg);
+
+        return response;
     }
 
     /**
@@ -120,9 +139,11 @@ public class GameController{
         }catch(Exception e){
             succeed = false;
         }
-        return Map.of(
-                "status", succeed,
-                "sessionId", sessionId
-        );
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", succeed);
+        response.put("sessionId", sessionId);
+
+        return response;
     }
 }

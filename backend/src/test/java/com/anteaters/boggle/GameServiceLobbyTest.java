@@ -151,7 +151,7 @@ public class GameServiceLobbyTest {
         when(userRegulation.getUser("bob")).thenReturn(bob);
 
         gameService.joinSession(0, "alice");
-        gameService.startGame(0);
+        gameService.startGame(0, "alice");
 
         assertThrows(
                 IllegalStateException.class,

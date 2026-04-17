@@ -5,6 +5,7 @@ import com.anteaters.boggle.dictionary.InMemoryCustomDictionaryStore;
 import com.anteaters.boggle.entity.User;
 import com.anteaters.boggle.model.WordSubmissionResult;
 import com.anteaters.boggle.repository.UserRepository;
+import com.anteaters.boggle.service.GameEventService;
 import com.anteaters.boggle.service.GameService;
 import com.anteaters.boggle.service.GameSession;
 import com.anteaters.boggle.service.ScoreCalculator;
@@ -14,8 +15,6 @@ import com.anteaters.boggle.service.WordVerificationService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.anteaters.boggle.service.GameEventService;
-import static org.mockito.Mockito.mock;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -28,6 +27,9 @@ import static org.mockito.Mockito.*;
  * - score updates for a valid word
  * - duplicate words do not score twice
  * - accepted words are stored correctly
+ *
+ * These tests also respect the current multiplayer start contract:
+ * only the host player may start the session.
  */
 public class GameServiceScoringIntegrationTest {
 
@@ -41,12 +43,18 @@ public class GameServiceScoringIntegrationTest {
     private UserRegulationService userRegulation;
     private GameService gameService;
 
+    /**
+     * Loads the base dictionary once for all scoring integration tests.
+     */
     @BeforeAll
     static void loadDictionary() {
         trie = new DictionaryTrie();
         trie.loadDictionary();
     }
 
+    /**
+     * Rebuilds the scoring pipeline and GameService dependencies before each test.
+     */
     @BeforeEach
     void setUp() {
         store = new InMemoryCustomDictionaryStore();
@@ -64,17 +72,23 @@ public class GameServiceScoringIntegrationTest {
         gameService = new GameService(repo, userRegulation, submissionService, gameEventService);
     }
 
+    /**
+     * Verifies that submitting a valid word through GameService updates both score
+     * and accepted-word state for the player.
+     *
+     * The same user is added to the session and starts the game, which makes that
+     * user the host under the current Issue 2 rules.
+     */
     @Test
     void submitWord_updatesScoreAndAcceptedWordsThroughGameService() {
         User user = mock(User.class);
         int sessionId = 5;
+
         when(user.getUsername()).thenReturn("user");
         when(userRegulation.getUser("user")).thenReturn(user);
 
-        // NOTE:
-        // This assumes addPlayer()/startGame(username) work in the current GameService implementation.
         gameService.addPlayer(sessionId, "user");
-        gameService.startGame(sessionId);
+        gameService.startGame(sessionId, "user");
 
         WordSubmissionResult result = gameService.submitWord(sessionId, "user", "CAT");
 
@@ -90,16 +104,23 @@ public class GameServiceScoringIntegrationTest {
         assertDoesNotThrow(() -> gameService.endGame(sessionId));
     }
 
+    /**
+     * Verifies that submitting the same valid word twice does not award points twice
+     * and does not duplicate the accepted-word entry.
+     *
+     * The same user is added to the session and starts the game, which makes that
+     * user the host under the current Issue 2 rules.
+     */
     @Test
     void submitWord_duplicateWord_doesNotScoreTwice() {
         User user = mock(User.class);
+        int sessionId = 5;
+
         when(user.getUsername()).thenReturn("user");
         when(userRegulation.getUser("user")).thenReturn(user);
 
-        int sessionId = 5;
-
         assertDoesNotThrow(() -> gameService.addPlayer(sessionId, "user"));
-        assertNotNull(gameService.startGame(sessionId));
+        assertNotNull(gameService.startGame(sessionId, "user"));
 
         WordSubmissionResult first = gameService.submitWord(sessionId, "user", "CAT");
         WordSubmissionResult second = gameService.submitWord(sessionId, "user", "CAT");
