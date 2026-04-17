@@ -3,18 +3,19 @@ package com.anteaters.boggle.service;
 import org.springframework.stereotype.Service;
 import com.anteaters.boggle.repository.UserRepository;
 import com.anteaters.boggle.entity.User;
-import com.anteaters.boggle.service.Player;
-import com.anteaters.boggle.service.UserRegulationService;
-import com.anteaters.boggle.service.ScoreCalculator;
-import com.anteaters.boggle.service.BoggleBoard;
-import com.anteaters.boggle.service.GameSession;
+import com.anteaters.boggle.model.SessionSummary;
 import com.anteaters.boggle.model.WordSubmissionResult;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
 /**
- * A service module for the multiplayer feature that will be implemented in the future
+ * Service layer for multiplayer session management.
+ *
+ * This service owns the registry of available sessions and coordinates
+ * session-level operations such as joining a lobby, starting a game,
+ * submitting words, and broadcasting SSE updates to connected clients.
  */
 @Service
 public class GameService {
@@ -24,15 +25,19 @@ public class GameService {
     private final WordSubmissionService wordSubmissionService;
     private static final int MAX_SESSIONS = 10; // the max number of sessions we can create
 
-    private Map<Integer, GameSession> sessions;
-
-    private final GameEventService gameEventService;
+    private Map<Integer, GameSession> sessions; // all available multiplayer sessions indexed by session id
+    private final GameEventService gameEventService; // SSE event publisher used to notify players within a session
 
     /**
-     * The constructor for GameService, this will create all game sessions
+     * Constructs the multiplayer game service and creates the fixed pool of sessions.
      *
-     * @param repo           auto-created by Sprint Boot
-     * @param userRegulation the service that contains all login information
+     * For the current implementation, all sessions are created up front and each session
+     * is configured to support up to three players.
+     *
+     * @param repo auto-created by Spring Boot
+     * @param userRegulation service that contains login/session user information
+     * @param wordSubmissionService centralized word submission pipeline
+     * @param gameEventService SSE publisher used for real-time client updates
      */
     public GameService(UserRepository repo,
                        UserRegulationService userRegulation,
@@ -45,19 +50,19 @@ public class GameService {
         this.gameEventService = gameEventService;
         calc = new ScoreCalculator();
         sessions = new HashMap<Integer, GameSession>();
-        // TODO: specify the size (number of players) of each game session
+
         // for now all sessions are 3 players
         for(int i=0; i<MAX_SESSIONS; i++){
-            GameSession session = new GameSession(3, repo, wordSubmissionService);
+            GameSession session = new GameSession(4, repo, wordSubmissionService); // create the fixed pool of lobby sessions
             sessions.put(session.getId(), session);
         }
     }
 
     /**
-     * Find the session id associate with the user
+     * Finds the session id currently associated with the specified user.
      *
-     * @param username from the user to be checked
-     * @return a non-negative session id, or -1 if the user is never added to any session
+     * @param username username to search for
+     * @return a non-negative session id, or -1 if the user is not assigned to any session
      */
     private int getSessionId(String username){
         // use the map iterator to linearly search through all entries
@@ -70,11 +75,90 @@ public class GameService {
     }
 
     /**
-     * Checks if the user is logged in, if so, start a game session.
-     * A game cannot be started more than once.
+     * Returns summary information for all multiplayer sessions.
      *
-     * @return the BoggleBoard object associate with that session
-     * @param sessionId the sesssion that we want to start
+     * This method supports the lobby list page by converting each session
+     * into a compact DTO intended for frontend display.
+     *
+     * @return list of session summaries for the lobby page
+     */
+    public List<SessionSummary> getSessionSummaries() {
+        return sessions.values()
+                .stream()
+                .map(GameSession::toSummary) // convert internal session state into a lobby-facing DTO
+                .toList();
+    }
+
+    /**
+     * Adds a logged-in user to a specific multiplayer lobby session.
+     *
+     * Validation rules:
+     * - the target session must exist
+     * - the user must be logged in
+     * - the user must not already belong to this session
+     * - the user must not already belong to another session
+     *
+     * Additional session-specific validation, such as full-capacity or started-session checks,
+     * is delegated to GameSession.addPlayer().
+     *
+     * On success, a lobby-update SSE event is broadcast to all clients currently subscribed
+     * to the session so the waiting room can refresh in real time.
+     *
+     * @param sessionId the id of the target session
+     * @param username the username of the player to be added
+     * @return updated session summary after the player has joined
+     * @throws IllegalArgumentException if the session does not exist or the user is not logged in
+     * @throws IllegalStateException if the player is already assigned to a session
+     */
+    public SessionSummary joinSession(int sessionId, String username){
+        GameSession session = sessions.get(sessionId);
+        if(session == null){
+            throw new IllegalArgumentException("The session of this id does not exists");
+        }
+
+        User user = userRegulation.getUser(username);
+        if (user == null) {
+            throw new IllegalArgumentException("The user is not logged in");
+        }
+
+        int existingSessionId = getSessionId(username);
+        if(existingSessionId != -1){
+            if(existingSessionId == sessionId){
+                throw new IllegalStateException("Player is already in this session");
+            }
+            throw new IllegalStateException("Player is already in another session");
+        }
+
+        Player player = new Player(user, calc);
+        session.addPlayer(player); // session-level validation handles duplicate, full, and started-state checks
+
+        SessionSummary summary = session.toSummary();
+
+        gameEventService.broadcastToSession(
+                String.valueOf(sessionId),
+                "lobby-update",
+                Map.of(
+                        "sessionId", summary.sessionId(),
+                        "started", summary.started(),
+                        "playerCount", summary.playerCount(),
+                        "maxPlayers", summary.maxPlayers(),
+                        "hostUsername", summary.hostUsername(),
+                        "joinedUsername", username // indicates which player most recently entered the lobby
+                )
+        );
+
+        return summary;
+    }
+
+    /**
+     * Starts a game for the specified session.
+     *
+     * A game cannot be started if the session id is invalid or if the session
+     * itself rejects the start request.
+     *
+     * @param sessionId the session that should start
+     * @return the BoggleBoard object associated with that session
+     * @throws IllegalArgumentException if the session id does not exist
      */
     public BoggleBoard startGame(int sessionId) {
         if(!sessions.containsKey(sessionId)){
@@ -97,7 +181,11 @@ public class GameService {
     }
 
     /**
-     * Checks if the user is logged in, if so, add them to the session.
+     * Checks if the user is logged in and, if so, adds them to the session.
+     *
+     * This method predates the dedicated lobby join flow. The newer joinSession()
+     * method should be preferred for the waiting-room flow because it also returns
+     * a structured session summary and enforces cross-session membership checks.
      *
      * @param sessionId the id of the game session
      * @param username the username of the player to be added
@@ -131,16 +219,16 @@ public class GameService {
     /**
      * Submits a word for a particular player through the centralized
      * WordSubmissionService pipeline.
-     * <p>
+     *
      * Flow:
-     * - look up player in current game
-     * - pass that player's tracker to WordSubmissionService
-     * - receive the result object containing score / accepted words state
+     * - look up the session
+     * - delegate submission to the session
+     * - broadcast the updated player state to the session over SSE
      *
      * @param sessionId the id of the game session
      * @param username username of the player submitting the word
-     * @param word     raw submitted word
-     * @return result of submission including score state
+     * @param word raw submitted word
+     * @return result of submission including score and accepted-word state
      */
     public WordSubmissionResult submitWord(int sessionId, String username, String word) {
         // parameter check - sessionId
@@ -205,7 +293,7 @@ public class GameService {
     }
 
     /**
-     * End a game session and flushes all player data to the database
+     * Ends a game session and flushes all player data to the database.
      *
      * @param sessionId the id of the game session
      */

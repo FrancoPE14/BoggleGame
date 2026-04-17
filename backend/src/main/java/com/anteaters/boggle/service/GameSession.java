@@ -1,13 +1,9 @@
 package com.anteaters.boggle.service;
 
 import com.anteaters.boggle.repository.UserRepository;
-import com.anteaters.boggle.entity.User;
-import com.anteaters.boggle.service.Player;
-import com.anteaters.boggle.service.UserRegulationService;
-import com.anteaters.boggle.service.ScoreCalculator;
-import com.anteaters.boggle.service.BoggleBoard;
+import com.anteaters.boggle.model.SessionSummary;
 import com.anteaters.boggle.model.WordSubmissionResult;
-import java.util.List;
+
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,35 +11,42 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This class stores the state of a multiplayer game, including the session id, whether the game is active, the players
- * in the session, the game board, session setting, etc., and supports operations on these fields.
+ * This class stores the state of a multiplayer game session, including the session id,
+ * whether the game is active, the players in the session, the game board, and timing data.
+ *
+ * For the lobby flow, this class also keeps track of the host player and exposes
+ * a compact summary view that can be returned by the lobby session API.
  */
 public class GameSession{
-    private static int idCnt = 0; // +1 after each session object is created so the id for each object can't repeat
+    private static int idCnt = 0; // incremented for each session instance so every session id remains unique
 
-    private int numPlayers; // the current number of players in the game
-    private boolean gameStarted;
-    private Player[] players; // fixed number of players determined at initialization of object
-    private BoggleBoard board;
+    private int numPlayers; // current number of players assigned to this session
+    private boolean gameStarted; // whether the game in this session has already started
+    private Player[] players; // fixed-capacity player storage determined when the session is created
+    private BoggleBoard board; // board currently associated with this session
     private String[] settings; // TODO: to be implemented
-    private long startTime = -1; // system time when the game starts in ms
-    private long endTime = -1; // system time when the game would end in ms
-    private ScheduledExecutorService scheduler = null; // one timer thread for each session
-    private ScheduledFuture<?> scheduledFuture = null;
+    private long startTime = -1; // system time when the current game started, measured in milliseconds
+    private long endTime = -1; // system time when the current game should end, measured in milliseconds
+    private ScheduledExecutorService scheduler = null; // one timer executor per session
+    private ScheduledFuture<?> scheduledFuture = null; // scheduled task used to drive per-second timer updates
 
     private final int sessionId; // unique identifier of the sessions
     private final int maxPlayers; // max number of players that this session can have
-    private final WordSubmissionService wordSubmissionService;
-    private final UserRepository repo;
-    // TODO: maybe a part of settings?
+    private final WordSubmissionService wordSubmissionService; // centralized word submission pipeline used by this session
+    private final UserRepository repo; // repository used to flush player results when the session ends
     private final long duration; // duration of the game in seconds
+    private String hostUsername; // username of the host player, assigned to the first player who joins
 
     /**
-     * Initializes the session, with caller deciding the number of players
+     * Initializes a game session with a fixed player capacity.
      *
-     * @param maxPlayers the number of players for this game session, must be positive
-     * @param service a WordSubmissionService object
-     * @throws IllegalArgumentException if maxPlayer is non-positive, or service, repo is null
+     * The caller determines how many players the session can hold. A fresh session
+     * starts in lobby state with no players, no host, and a newly generated board.
+     *
+     * @param maxPlayers the maximum number of players allowed in this session
+     * @param repo repository used to persist player data when the session ends
+     * @param service word submission service shared by players in this session
+     * @throws IllegalArgumentException if maxPlayers is non-positive or if repo/service is null
      */
     public GameSession(int maxPlayers, UserRepository repo, WordSubmissionService service){
         if(maxPlayers<=0 || service==null || repo==null){
@@ -58,6 +61,7 @@ public class GameSession{
         this.maxPlayers = maxPlayers;
         players = new Player[maxPlayers];
         board = new BoggleBoard();
+        hostUsername = null;
 
         wordSubmissionService = service;
         this.repo = repo;
@@ -67,46 +71,88 @@ public class GameSession{
     }
 
     /**
-     * Get the unique session id
+     * Returns the unique id of this session.
      *
-     * @return the session id
+     * @return session id
      */
     public int getId(){
         return sessionId;
     }
 
     /**
-     * Check if the game has already started
+     * Returns whether the game in this session has already started.
      *
-     * @return whether the game has started
+     * @return true if gameplay has started, otherwise false
      */
     public boolean isStarted(){
         return gameStarted;
     }
 
     /**
-     * Get the boggle board
+     * Returns the board currently associated with this session.
      *
-     * @return the boggle board of the session
+     * @return current Boggle board
      */
     public BoggleBoard getBoard() {
         return board;
     }
 
     /**
-     * Get the max number of players allowed in this game
+     * Returns the maximum number of players supported by this session.
      *
-     * @return the max number of players allowed
+     * @return configured player capacity
      */
     public int getMaxPlayers(){
         return maxPlayers;
     }
 
     /**
-     * Start this game session, must call before calling any in-game methods
+     * Returns the current number of players in this session.
      *
-     * @return the boggle board of this session
-     * @throws IllegalStateException if the game has already started
+     * @return current player count
+     */
+    public int getNumPlayers() {
+        return numPlayers;
+    }
+
+    /**
+     * Returns the username of the session host.
+     *
+     * The host is the first player who successfully joins the lobby.
+     * This value is null while the session is empty.
+     *
+     * @return host username, or null if no player has joined yet
+     */
+    public String getHostUsername() {
+        return hostUsername;
+    }
+
+    /**
+     * Builds a read-only session summary for lobby APIs.
+     *
+     * This method is intended for the multiplayer lobby list endpoint so the frontend
+     * can display high-level session state without depending on internal session fields.
+     *
+     * @return immutable session summary for lobby display
+     */
+    public SessionSummary toSummary() {
+        return new SessionSummary(
+                sessionId,
+                gameStarted,
+                numPlayers,
+                maxPlayers,
+                hostUsername
+        );
+    }
+
+    /**
+     * Starts this game session.
+     *
+     * Once the session starts, the timer begins running and the session transitions
+     * from lobby state to active gameplay state.
+     *
+     * @return the board associated with this session
+     * @throws IllegalStateException if the session has already started
      */
     public BoggleBoard startGame(){
         if(gameStarted){
@@ -121,12 +167,14 @@ public class GameSession{
     }
 
     /**
-     * Run at each second of the session to send time left to frontend and check if the game has ennded
+     * Runs once per second to advance timer state and determine whether the session
+     * should end automatically.
+     *
      * TODO: finish the server-side event part
      */
     private void updateFrontendTimer(){
         long curTime = System.currentTimeMillis();
-        long timeLeft = duration - (curTime - startTime)/1000;
+        long timeLeft = duration - (curTime - startTime)/1000; // remaining time in seconds
         // TODO: send timeLeft to the frontend
         if(curTime >= endTime){
             endGame();
@@ -136,15 +184,17 @@ public class GameSession{
     /**
      * Submits a word for a particular player through the centralized
      * WordSubmissionService pipeline.
-     * <p>
+     *
      * Flow:
-     * - look up player in current game
+     * - look up the player in the current session
      * - pass that player's tracker to WordSubmissionService
-     * - receive the result object containing score / accepted words state
+     * - return the result object containing acceptance and score state
      *
      * @param username username of the player submitting the word
-     * @param word     raw submitted word
+     * @param word raw submitted word
      * @return result of submission including score state
+     * @throws IllegalStateException if the game has not started yet
+     * @throws IllegalArgumentException if the player does not belong to this session
      */
     public WordSubmissionResult submitWord(String username, String word) {
         if (!gameStarted) {
@@ -159,14 +209,13 @@ public class GameSession{
         return wordSubmissionService.submitWord(word, player.getTracker());
     }
 
-    public int getNumPlayers() {
-        return numPlayers;
-    }
-
     /**
-     * End the game session and flushes all player data to the database
+     * Ends the current game session and flushes all player data to the database.
      *
-     * @throws IllegalStateException if the game have not already started
+     * This method stops the timer, persists relevant player state, resets in-memory
+     * player progress, and returns the session to an empty lobby state.
+     *
+     * @throws IllegalStateException if the game has not started
      */
     public void endGame(){
         if(!gameStarted){ // game not started
@@ -191,10 +240,10 @@ public class GameSession{
     }
 
     /**
-     * Check if a player with that username is in this session
+     * Checks whether a player with the given username is already assigned to this session.
      *
-     * @param username the username to be checked
-     * @return whether the player with that username is in this session
+     * @param username username to search for
+     * @return true if the player is already part of this session, otherwise false
      * @throws IllegalArgumentException if username is null
      */
     public boolean isPlayerAdded(String username){
@@ -211,11 +260,11 @@ public class GameSession{
     }
 
     /**
-     * Returns the current score for a player in the session
+     * Returns the current score for a player in the session.
      *
      * @param username username of the player
      * @return current score
-     * @throws IllegalArgumentException if the username is null or player not found in the session
+     * @throws IllegalArgumentException if username is null or the player is not found in this session
      */
     public int getScore(String username) {
         if(username==null){
@@ -229,11 +278,13 @@ public class GameSession{
     }
 
     /**
-     * Returns the accepted words list for a player in the active game.
+     * Returns the accepted words for a player in the session.
+     *
+     * A copy is returned so callers cannot mutate the player's internal accepted-word state.
      *
      * @param username username of the player
-     * @return accepted words in submission order
-     * @throws IllegalArgumentException if the username is null or player not found in the session
+     * @return accepted words for the specified player
+     * @throws IllegalArgumentException if username is null or the player is not found in this session
      */
     public ArrayList<String> getAcceptedWords(String username) {
         if(username==null){
@@ -247,11 +298,15 @@ public class GameSession{
     }
 
     /**
-     * Add a player to the session if the session is not already full and not yet started
+     * Adds a player to this session.
      *
-     * @param newPlayer the new Player object to be added to this session, GameService is responsible of creating it
-     * @throws IllegalStateException if the session if already full
+     * A player may only be added if the session is still in lobby state, has available capacity,
+     * and does not already contain that username. The first player who joins becomes the host.
+     *
+     * @param newPlayer player to add
      * @throws IllegalArgumentException if newPlayer is null
+     * @throws IllegalStateException if the player is already in the session, the session is full,
+     *                               or the game has already started
      */
     public void addPlayer(Player newPlayer){
         if(newPlayer==null){
@@ -266,21 +321,28 @@ public class GameSession{
         if(gameStarted){
             throw new IllegalStateException("Session has already started, cannot add more players");
         }
+
         players[numPlayers++] = newPlayer;
+
+        if(hostUsername == null){
+            hostUsername = newPlayer.getUsername(); // assign host ownership to the first player who enters the lobby
+        }
     }
 
     /**
-     * Reset the id counter, only for testing purpose, do not call
+     * Resets the static session id counter.
+     *
+     * This is primarily useful in tests where deterministic session ids are required.
      */
     public static void resetIdCnt(){
         idCnt = 0;
     }
 
     /**
-     * Finds a player in the current session by username.
+     * Returns the player object for the specified username.
      *
-     * @param username username of the player
-     * @return the Player object if found, otherwise null
+     * @param username username to search for
+     * @return matching player, or null if the username does not belong to this session
      */
     private Player getPlayer(String username) {
         for (Player player : players) {
@@ -292,12 +354,17 @@ public class GameSession{
     }
 
     /**
-     * Reinitailize all non-final fields to the initial state, re-generate a new boggle board
+     * Resets this session back to an empty lobby state.
+     *
+     * This clears the active gameplay state, removes all players, clears host ownership,
+     * and creates a fresh board for the next game.
      */
     private void resetSession(){
         gameStarted = false;
         numPlayers = 0;
         board = new BoggleBoard();
+        hostUsername = null; // clear host ownership when the session returns to an empty lobby
+
         for(int i=0; i<maxPlayers; i++){
             players[i] = null;
         }
