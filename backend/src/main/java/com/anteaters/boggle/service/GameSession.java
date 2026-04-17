@@ -71,7 +71,7 @@ public class GameSession{
     }
 
     /**
-     * Returns the unique id of this session.
+     * Returns the unique id assigned to this session.
      *
      * @return session id
      */
@@ -128,6 +128,21 @@ public class GameSession{
     }
 
     /**
+     * Returns whether the provided username currently owns host authority
+     * for this session.
+     *
+     * @param username username to compare against the current host
+     * @return true if the provided username matches the host, otherwise false
+     * @throws IllegalArgumentException if username is null
+     */
+    public boolean isHost(String username) {
+        if (username == null) {
+            throw new IllegalArgumentException("Argument is null");
+        }
+        return hostUsername != null && hostUsername.equals(username);
+    }
+
+    /**
      * Builds a read-only session summary for lobby APIs.
      *
      * This method is intended for the multiplayer lobby list endpoint so the frontend
@@ -167,10 +182,10 @@ public class GameSession{
     }
 
     /**
-     * Runs once per second to advance timer state and determine whether the session
-     * should end automatically.
+     * Advances the server-side timer state for this session.
      *
-     * TODO: finish the server-side event part
+     * This method currently handles timeout detection only. Frontend timer
+     * synchronization is deferred to a later issue.
      */
     private void updateFrontendTimer(){
         long curTime = System.currentTimeMillis();
