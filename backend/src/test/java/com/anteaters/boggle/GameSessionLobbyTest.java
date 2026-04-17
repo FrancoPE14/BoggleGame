@@ -10,7 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 public class GameSessionLobbyTest {
 
@@ -28,15 +28,9 @@ public class GameSessionLobbyTest {
         session = new GameSession(3, repo, wordSubmissionService);
     }
 
-    private User mockUser(String username) {
-        User user = mock(User.class);
-        when(user.getUsername()).thenReturn(username);
-        return user;
-    }
-
     @Test
     void firstAddedPlayerBecomesHost() {
-        User alice = mockUser("alice");
+        User alice = new User("alice", "password");
         Player player = new Player(alice, calc);
 
         session.addPlayer(player);
