@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.anteaters.boggle.model.FinishAckResponse;
 import com.anteaters.boggle.model.SessionSummary;
 import com.anteaters.boggle.model.WordSubmissionResult;
 import com.anteaters.boggle.service.GameService;
@@ -17,7 +18,7 @@ import java.util.Map;
  * REST controller for multiplayer game operations.
  *
  * This controller exposes session listing, lobby join, game start,
- * word submission, and manual game end endpoints.
+ * finish acknowledgement, word submission, and manual game end endpoints.
  */
 @RestController
 public class GameController{
@@ -82,10 +83,9 @@ public class GameController{
         boolean succeed = true;
         BoggleBoard board = null;
         String errMsg = null;
-
         try {
             board = service.startGame(sessionId, username);
-        } catch(Exception e){
+        }catch(Exception e){
             succeed = false;
             errMsg = e.getMessage();
         }
@@ -98,6 +98,23 @@ public class GameController{
         response.put("err", errMsg);
 
         return response;
+    }
+
+    /**
+     * Records that a player has finished the current round after the timer has ended.
+     *
+     * Usage example: POST /api/finish?sessionId=0&username=user
+     *
+     * This endpoint is intended to be called after the client receives the round-ended
+     * event and has completed all local round-finalization work.
+     *
+     * @param sessionId the id of the session
+     * @param username username of the player sending the acknowledgement
+     * @return structured response describing the updated finish state
+     */
+    @PostMapping("/api/finish")
+    public FinishAckResponse finishRound(@RequestParam int sessionId, @RequestParam String username) {
+        return service.acknowledgePlayerFinished(sessionId, username);
     }
 
     /**
@@ -126,7 +143,7 @@ public class GameController{
      * Usage example: POST /api/end?sessionId=0
      *
      * This endpoint is typically not needed during normal gameplay because the session
-     * currently ends automatically when the timer expires.
+     * currently ends automatically when later multiplayer endgame flow is completed.
      *
      * @param sessionId the id of the session to end
      * @return JSON containing whether the end request completed successfully
