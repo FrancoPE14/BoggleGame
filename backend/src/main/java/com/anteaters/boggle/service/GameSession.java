@@ -334,15 +334,14 @@ public class GameSession{
             scheduler = null;
         }
 
-        Map<String, Integer> map = new HashMap<>();
+        ArrayList<Map<String, Object>> finalScores = new ArrayList<>();
         for (Player player : players) {
             if (player != null) {
-                map.put(player.getUsername(), player.getScore());
+                finalScores.add(Map.of("username", player.getUsername(), "score", player.getScore()));
             }
         }
 
-        ArrayList<Map.Entry<String, Integer>> finalScores = new ArrayList<>(map.entrySet());
-        finalScores.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+        finalScores.sort((a, b) -> Integer.compare((int) b.get("score"), (int) a.get("score")));
 
         if(gameEventService != null){
             gameEventService.broadcastToSession(
