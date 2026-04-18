@@ -87,13 +87,10 @@ export default function Home() {
         />
 
         {gameActive && (
-          <>
-            <WordInput submittedWords={submittedWords} />
-            <ScoreDisplay
-              submittedWords={submittedWords}
-              currentScore={currentScore}
-            />
-          </>
+            <>
+              <WordInput submittedWords={submittedWords} />
+              <ScoreDisplay submittedWords={submittedWords} />
+            </>
         )}
       </main>
     </div>
