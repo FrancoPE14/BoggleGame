@@ -124,4 +124,56 @@ public class UserProfileControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("No image data provided"));
     }
+
+    /**
+     * PUT /api/user/score should return 200 when logged in with a valid score.
+     */
+    @Test
+    void submitScore_loggedIn_returns200() throws Exception {
+        User user = new User("Rae", "hashedpwd");
+
+        when(userService.isLoggedIn("Rae")).thenReturn(true);
+        when(userRepository.findById("Rae")).thenReturn(Optional.of(user));
+
+        mockMvc.perform(put("/api/user/score")
+                        .param("username", "Rae")
+                        .param("score", "450"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(true));
+    }
+
+    /**
+     * PUT /api/user/score should return 401 when user is not logged in.
+     */
+    @Test
+    void submitScore_notLoggedIn_returns401() throws Exception {
+        when(userService.isLoggedIn("Rae")).thenReturn(false);
+
+        mockMvc.perform(put("/api/user/score")
+                        .param("username", "Rae")
+                        .param("score", "450"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Not logged in"));
+    }
+
+    /**
+     * PUT /api/user/score should not overwrite a higher existing score.
+     */
+    @Test
+    void submitScore_lowerScore_doesNotOverwrite() throws Exception {
+        User user = new User("Rae", "hashedpwd");
+        user.updateHighScore(500); // existing high score
+
+        when(userService.isLoggedIn("Rae")).thenReturn(true);
+        when(userRepository.findById("Rae")).thenReturn(Optional.of(user));
+
+        mockMvc.perform(put("/api/user/score")
+                        .param("username", "Rae")
+                        .param("score", "200")) // lower than 500
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(true));
+
+        // high score should still be 500
+        assert user.getHighScore() == 500;
+    }
 }
