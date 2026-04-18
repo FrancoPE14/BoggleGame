@@ -17,6 +17,7 @@ export default function Home() {
     ["B", "O", "G", "G", "L"],
   ];
 
+  const [finalScore, setFinalScore] = useState(0);
   const [gameActive, setGameActive] = useState(false);
   const [board, setBoard] = useState(defaultBoard);
   const { submittedWords, verifyWord, resetWords, currentScore } =
@@ -39,6 +40,7 @@ export default function Home() {
    */
   const handleGameEnd = useCallback(() => {
     setGameActive(false);
+    setFinalScore(currentScore); // capture before resetWords clears it
 
     const username = window.sessionStorage.getItem("username");
     if (username) {
@@ -76,7 +78,7 @@ export default function Home() {
       onMouseUp={handleMouseUp}
     >
       <main className="flex min-h-screen w-full max-w-3xl mx-auto flex-col items-center justify-center py-32 px-16 bg-amber-100 dark:bg-amber-100">
-        <Timer onGameStart={handleGameStart} onGameEnd={handleGameEnd} finalScore={currentScore} />
+        <Timer onGameStart={handleGameStart} onGameEnd={handleGameEnd} finalScore={finalScore} />
 
         <BoggleBoard
           ref={boggleBoardRef}
