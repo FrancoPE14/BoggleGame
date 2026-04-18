@@ -1,40 +1,41 @@
-"use client";
+import { useEffect } from "react";
 
-import { useEffect, useRef, useState } from "react";
+type Props = {
+  sessionId: number;
+  onGameStarted?: (data: any) => void;
+  onGameState?: (data: any) => void;
+  onRoundEnded?: () => void;
+};
 
-export default function useGameStream() {
-  const [connected, setConnected] = useState(false);
-  const eventSourceRef = useRef<EventSource | null>(null);
-
+export default function useGameStream({
+  sessionId,
+  onGameStarted,
+  onGameState,
+  onRoundEnded,
+}: Props) {
   useEffect(() => {
-    const es = new EventSource("http://localhost:8080/api/game/stream");
-    eventSourceRef.current = es;
+    if (!sessionId) return;
 
-    es.addEventListener("connected", () => {
-      console.log("SSE connected");
-      setConnected(true);
+    const es = new EventSource(
+      `http://localhost:8080/api/game/stream?sessionId=${sessionId}`
+    );
+
+    es.addEventListener("game-started", (e) => {
+      const data = JSON.parse(e.data);
+      onGameStarted?.(data);
     });
 
-    es.addEventListener("test", (event) => {
-      const data = JSON.parse((event as MessageEvent).data);
-      console.log("TEST EVENT:", data);
+    es.addEventListener("game-state", (e) => {
+      const data = JSON.parse(e.data);
+      onGameState?.(data);
     });
 
-    es.onerror = () => {
-      console.log("SSE error → reconnecting...");
-      setConnected(false);
-      es.close();
-
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    };
+    es.addEventListener("round-ended", () => {
+      onRoundEnded?.();
+    });
 
     return () => {
       es.close();
     };
-  }, []);
-
-  return { connected };
+  }, [sessionId]);
 }
