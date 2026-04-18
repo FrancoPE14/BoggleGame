@@ -334,11 +334,24 @@ public class GameSession{
             scheduler = null;
         }
 
+        Map<String, Integer> map = new HashMap<>();
+        for (Player player : players) {
+            if (player != null) {
+                map.put(player.getUsername(), player.getScore());
+            }
+        }
+
+        ArrayList<Map.Entry<String, Integer>> finalScores = new ArrayList<>(map.entrySet());
+        finalScores.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+
         if(gameEventService != null){
             gameEventService.broadcastToSession(
                     String.valueOf(sessionId),
                     "round-ended",
-                    Map.of("sessionId", sessionId)
+                    Map.of(
+                            "sessionId", sessionId,
+                            "finalScores", finalScores
+                    )
             );
         }
     }
