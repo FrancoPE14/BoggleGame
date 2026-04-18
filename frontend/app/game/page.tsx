@@ -39,8 +39,17 @@ export default function Home() {
    */
   const handleGameEnd = useCallback(() => {
     setGameActive(false);
+
+    const username = window.sessionStorage.getItem("username");
+    if (username) {
+      fetch(
+          `http://localhost:8080/api/user/score?username=${encodeURIComponent(username)}&score=${currentScore}`,
+          { method: "PUT" },
+      ).catch((err) => console.error("Score submit failed:", err));
+    }
+
     resetWords();
-  }, [resetWords]);
+  }, [resetWords, currentScore]);
 
   /**
    * Called on initial mount and when the player clicks Play Again.
@@ -67,7 +76,7 @@ export default function Home() {
       onMouseUp={handleMouseUp}
     >
       <main className="flex min-h-screen w-full max-w-3xl mx-auto flex-col items-center justify-center py-32 px-16 bg-amber-100 dark:bg-amber-100">
-        <Timer onGameStart={handleGameStart} onGameEnd={handleGameEnd} />
+        <Timer onGameStart={handleGameStart} onGameEnd={handleGameEnd} finalScore={currentScore} />
 
         <BoggleBoard
           ref={boggleBoardRef}
