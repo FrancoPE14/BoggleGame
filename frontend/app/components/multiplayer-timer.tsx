@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const GAME_DURATION_SECONDS = 3 * 60;
 
@@ -16,15 +16,15 @@ export default function MultiplayerTimer({
   startSignal,
 }: MultiplayerTimerProps) {
   const [tick, setTick] = useState(0);
-  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const startTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!gameStarted || roundEnded) {
       return;
     }
 
-    const startTime = Date.now();
-    setStartedAt(startTime);
+    startTimeRef.current = Date.now();
+    setTick(Date.now());
 
     const intervalId = setInterval(() => {
       setTick(Date.now());
@@ -36,7 +36,7 @@ export default function MultiplayerTimer({
   }, [gameStarted, roundEnded, startSignal]);
 
   const secondsLeft = useMemo(() => {
-    if (!startedAt) {
+    if (!startTimeRef.current) {
       return GAME_DURATION_SECONDS;
     }
 
@@ -44,9 +44,9 @@ export default function MultiplayerTimer({
       return 0;
     }
 
-    const elapsedSeconds = Math.floor((tick - startedAt) / 1000);
+    const elapsedSeconds = Math.floor((tick - startTimeRef.current) / 1000);
     return Math.max(0, GAME_DURATION_SECONDS - elapsedSeconds);
-  }, [startedAt, tick, roundEnded]);
+  }, [tick, roundEnded]);
 
   const minutes = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
   const seconds = String(secondsLeft % 60).padStart(2, "0");
