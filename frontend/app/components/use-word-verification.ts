@@ -59,7 +59,11 @@ export default function useWordVerification(): {
 
             try {
                 const res = await fetch(
+<<<<<<< HEAD
                     `http://163.192.206.210:8080/api/verify?word=${encodeURIComponent(normalized)}`,
+=======
+                    `/api/verify?word=${encodeURIComponent(normalized)}`,
+>>>>>>> main
                 );
                 const data: { word: string; valid: boolean } = await res.json();
 
@@ -71,14 +75,13 @@ export default function useWordVerification(): {
                 ]);
 
                 setLoading(false);
+                console.log("word verified, pointsAwarded:", pointsAwarded, "new total would be:", currentScore + pointsAwarded);
                 return data.valid;
             } catch {
                 setLoading(false);
                 return false;
             }
-        },
-        [submittedWords],
-    );
+        }, [submittedWords, currentScore]);
 
     /** Clears submitted words and resets score on game end or play again. */
     const resetWords = useCallback(() => {

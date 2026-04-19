@@ -12,6 +12,7 @@ import useWordVerification from "../components/use-word-verification";
 export default function Home() {
   const searchParams = useSearchParams();
   const duration = Number(searchParams.get("duration")) || 180;
+  const boardSize = Number(searchParams.get("boardSize")) || 5;
 
   const defaultBoard = [
     ["T", "E", "S", "T", "S"],
@@ -23,19 +24,20 @@ export default function Home() {
 
   const [finalScore, setFinalScore] = useState(0);
   const [gameActive, setGameActive] = useState(false);
-  const [board, setBoard] = useState(defaultBoard);
+  const [board, setBoard] = useState<string[][] | null>(null);
   const { submittedWords, verifyWord, resetWords, currentScore } =
     useWordVerification();
   const boggleBoardRef = useRef<BoggleBoardHandle>(null);
 
   function generateBoard() {
-    fetch("/api/generate")
-      .then((res) => res.json())
-      .then((b) => {
-        setBoard(b);
-        console.log(b);
-      })
-      .catch((error) => console.error("Error: ", error));
+    console.log("generating board with size:", boardSize);
+    fetch(`/api/generate?size=${boardSize}`)
+        .then((res) => res.json())
+        .then((b) => {
+          setBoard(b);
+          console.log(b);
+        })
+        .catch((error) => console.error("Error: ", error));
   }
 
   /**
@@ -44,12 +46,13 @@ export default function Home() {
    */
   const handleGameEnd = useCallback(() => {
     setGameActive(false);
+    console.log("handleGameEnd fired, currentScore:", currentScore);
     setFinalScore(currentScore); // capture before resetWords clears it
 
     const username = window.sessionStorage.getItem("username");
     if (username) {
       fetch(
-          `http://localhost:8080/api/user/score?username=${encodeURIComponent(username)}&score=${currentScore}`,
+          `/api/user/score?username=${encodeURIComponent(username)}&score=${currentScore}`,
           { method: "PUT" },
       ).catch((err) => console.error("Score submit failed:", err));
     }
@@ -65,7 +68,7 @@ export default function Home() {
     generateBoard();
     setGameActive(true);
     resetWords();
-  }, [resetWords]);
+  }, [resetWords, generateBoard]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     boggleBoardRef.current?.handleMouseDown(e);
@@ -89,13 +92,15 @@ export default function Home() {
             durationSeconds={duration}
         />
 
-        <BoggleBoard
-          ref={boggleBoardRef}
-          submittedWords={submittedWords}
-          verifyWord={verifyWord}
-          gameActive={gameActive}
-          board={board}
-        />
+        {board && (
+            <BoggleBoard
+                ref={boggleBoardRef}
+                submittedWords={submittedWords}
+                verifyWord={verifyWord}
+                gameActive={gameActive}
+                board={board}
+            />
+        )}
 
         {gameActive && (
             <>
