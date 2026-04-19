@@ -12,7 +12,7 @@ export default function useMultiplayerWordSubmission(
     if (!input) return;
 
     const res = await fetch(
-      `http://localhost:8080/api/submit-word?sessionId=${sessionId}&username=${username}&word=${input}`,
+      `http://163.192.206.210:8080/api/submit-word?sessionId=${sessionId}&username=${username}&word=${input}`,
       { method: "POST" }
     );
 

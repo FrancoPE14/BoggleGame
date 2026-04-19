@@ -10,6 +10,7 @@ import useWordVerification from "../../components/use-word-verification";
 import useGameStream, {
   GameStartedEvent,
   GameResultsEvent,
+  GameStateEvent,
   GameEndedEvent,
 } from "../../components/use-game-stream";
 import type { FinalScore } from "../../components/use-game-stream";
@@ -27,6 +28,8 @@ export default function MultiplayerPage() {
   const [result, setResult] = useState<GameResultsEvent | null>(null);
   const [startSignal, setStartSignal] = useState(0);
   const [finalScores, setFinalScores] = useState<FinalScore[] | null>(null);
+  const [liveScore, setLiveScore] = useState(0);
+  const [sessionEnded, setSessionEnded] = useState(false);
 
   const { submittedWords, verifyWord, resetWords, currentScore } =
     useWordVerification({ sessionId, username });
@@ -39,6 +42,8 @@ export default function MultiplayerPage() {
       setGameStarted(true);
       setRoundEnded(false);
       setResult(null);
+      setSessionEnded(false);
+      setLiveScore(0);
       setStartSignal((prev) => prev + 1);
       resetWords();
     },
@@ -50,27 +55,43 @@ export default function MultiplayerPage() {
     setGameStarted(false);
 
     try {
-      await fetch(
-        `http://localhost:8080/api/finish?sessionId=${sessionId}&username=${username}`,
+      const res = await fetch(
+        `http://163.192.206.210:8080/api/finish?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
         { method: "POST" }
       );
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Finish failed: ${res.status} ${text}`);
+      }
     } catch (error) {
       console.error("Failed to acknowledge round finish", error);
     }
   }, [sessionId, username]);
 
-  const handleGameEnded = useCallback((data: GameEndedEvent) => {
-    setFinalScores(data.finalScores);
-  }, []);
+  const handleGameState = useCallback(
+    (data: GameStateEvent) => {
+      if (data.username === username) {
+        setLiveScore(data.currentScore);
+      }
+    },
+    [username]
+  );
 
   const handleGameResults = useCallback((data: GameResultsEvent) => {
     setResult(data);
   }, []);
 
+  const handleGameEnded = useCallback((data: GameEndedEvent) => {
+    console.log("Session ended:", data.sessionId);
+    setFinalScores(data.finalScores);
+    setSessionEnded(true);
+  }, []);
+
   useGameStream({
     sessionId,
     onGameStarted: handleGameStarted,
-    onRoundEnded: handleRoundEnded,
+    onGameState: handleGameState,
     onGameResults: handleGameResults,
     onGameEnded: handleGameEnded,
   });
@@ -82,6 +103,9 @@ export default function MultiplayerPage() {
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
     boggleBoardRef.current?.handleMouseUp(e);
   }, []);
+
+  const displayedScore =
+    result?.scores?.[username] ?? liveScore ?? currentScore;
 
   return (
     <div
@@ -95,6 +119,7 @@ export default function MultiplayerPage() {
             gameStarted={gameStarted}
             roundEnded={roundEnded}
             startSignal={startSignal}
+            onRoundEnded={handleRoundEnded}
           />
         )}
 
@@ -119,7 +144,7 @@ export default function MultiplayerPage() {
             <WordInput submittedWords={submittedWords} />
             <ScoreDisplay
               submittedWords={submittedWords}
-              currentScore={currentScore}
+              currentScore={displayedScore}
             />
           </>
         )}
@@ -137,6 +162,12 @@ export default function MultiplayerPage() {
                 finalScores={finalScores}
                 isMultiplayer={true}
             />
+        )}
+
+        {sessionEnded && (
+          <div className="mt-4 text-sm font-medium">
+            Session ended.
+          </div>
         )}
       </main>
     </div>
