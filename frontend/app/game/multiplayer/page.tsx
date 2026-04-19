@@ -8,11 +8,13 @@ import MultiplayerScoreDisplay from "@/app/components/multiplayer-score-display"
 
 export default function MultiplayerGamePage() {
   const params = useSearchParams();
+
   const sessionId = Number(params.get("sessionId"));
   const username = params.get("username") || "user";
 
   const [board, setBoard] = useState<string[][] | null>(null);
   const [roundEnded, setRoundEnded] = useState(false);
+  const [result, setResult] = useState<any>(null);
 
   const {
     input,
@@ -24,18 +26,28 @@ export default function MultiplayerGamePage() {
 
   useGameStream({
     sessionId,
+
     onGameStarted: (data) => {
+      // backend: { board: { board: [][] } }
       setBoard(data.board.board);
     },
-    onGameState: () => {},
+
+    onGameState: () => {
+      // 필요하면 나중에 확장
+    },
+
     onRoundEnded: async () => {
       setRoundEnded(true);
 
-      // finish ack
+      // 🔥 finish ack
       await fetch(
         `http://localhost:8080/api/finish?sessionId=${sessionId}&username=${username}`,
         { method: "POST" }
       );
+    },
+
+    onGameResults: (data) => {
+      setResult(data);
     },
   });
 
@@ -45,8 +57,11 @@ export default function MultiplayerGamePage() {
 
   return (
     <div className="flex flex-col items-center gap-4">
+
+      {/* SCORE */}
       <MultiplayerScoreDisplay score={score} />
 
+      {/* BOARD */}
       <div className="grid grid-cols-4 gap-2">
         {board.map((row, i) =>
           row.map((cell, j) => (
@@ -60,6 +75,7 @@ export default function MultiplayerGamePage() {
         )}
       </div>
 
+      {/* INPUT */}
       {!roundEnded && (
         <div className="flex gap-2">
           <input
@@ -67,19 +83,43 @@ export default function MultiplayerGamePage() {
             onChange={(e) => setInput(e.target.value)}
             className="border p-2"
           />
-          <button onClick={submitWord} className="border px-4">
+          <button
+            onClick={submitWord}
+            className="border px-4"
+          >
             Submit
           </button>
         </div>
       )}
 
+      {/* WORD LIST */}
       <div>
         {words.map((w, i) => (
           <div key={i}>{w}</div>
         ))}
       </div>
 
-      {roundEnded && <div>Round Ended</div>}
+      {/* ROUND END */}
+      {roundEnded && !result && (
+        <div className="text-lg">Waiting for results...</div>
+      )}
+
+      {/* RESULT */}
+      {result && (
+        <div className="flex flex-col items-center gap-2 mt-4 border p-4">
+          <h2 className="text-xl font-bold">
+            Winner: {result.winner}
+          </h2>
+
+          <div>
+            {Object.entries(result.scores).map(([user, score]) => (
+              <div key={user}>
+                {user}: {score}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

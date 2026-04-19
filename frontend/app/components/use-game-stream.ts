@@ -5,6 +5,7 @@ type Props = {
   onGameStarted?: (data: any) => void;
   onGameState?: (data: any) => void;
   onRoundEnded?: () => void;
+  onGameResults?: (data: any) => void;
 };
 
 export default function useGameStream({
@@ -12,6 +13,7 @@ export default function useGameStream({
   onGameStarted,
   onGameState,
   onRoundEnded,
+  onGameResults,
 }: Props) {
   useEffect(() => {
     if (!sessionId) return;
@@ -33,6 +35,16 @@ export default function useGameStream({
     es.addEventListener("round-ended", () => {
       onRoundEnded?.();
     });
+
+    es.addEventListener("game-results", (e) => {
+      const data = JSON.parse(e.data);
+      onGameResults?.(data);
+    });
+
+    es.onerror = () => {
+      console.error("SSE connection error");
+      es.close();
+    };
 
     return () => {
       es.close();

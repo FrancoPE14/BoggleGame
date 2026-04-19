@@ -120,9 +120,22 @@ public class GameService {
             throw new IllegalArgumentException("The session of this id does not exists");
         }
 
-        User user = userRegulation.getUser(username);
+
+        // TODO: use this once login issue is fixed
+        //User user = userRegulation.getUser(username);
+        //if (user == null) {
+        //    throw new IllegalArgumentException("The user is not logged in");
+        //}
+
+        // TODO: delete this and use above once login issue is fixed.
+        User user;
+        try {
+            user = userRegulation.getUser(username);
+        } catch (Exception e) {
+            user = new User(username, "password");
+        }
         if (user == null) {
-            throw new IllegalArgumentException("The user is not logged in");
+            user = new User(username, "password");
         }
 
         int existingSessionId = getSessionId(username);
@@ -155,6 +168,22 @@ public class GameService {
     }
 
     /**
+     * Returns the GameSession instance for the given session id.
+     *
+     * This method is primarily used for testing purposes to access
+     * internal session state.
+     *
+     * @param sessionId id of the session
+     * @return GameSession instance
+     */
+    public GameSession getSession(int sessionId) {
+        if (!sessions.containsKey(sessionId)) {
+            throw new IllegalArgumentException("The session of this id does not exist");
+        }
+        return sessions.get(sessionId);
+    }
+
+    /**
      * Starts a game for the specified session.
      *
      * Only the session host is allowed to start the game. The caller must be
@@ -174,9 +203,21 @@ public class GameService {
             throw new IllegalArgumentException("The session of this id does not exists");
         }
 
-        User user = userRegulation.getUser(username);
+        // TODO: Use this once login issue is resolved.
+        //User user = userRegulation.getUser(username);
+        //if (user == null) {
+        //    throw new IllegalArgumentException("The user is not logged in");
+        //}
+
+        // TODO: delete this and use above once login issue is resolved.
+        User user;
+        try {
+            user = userRegulation.getUser(username);
+        } catch (Exception e) {
+            user = new User(username, "password");
+        }
         if (user == null) {
-            throw new IllegalArgumentException("The user is not logged in");
+            user = new User(username, "password");
         }
 
         GameSession session = sessions.get(sessionId);
@@ -220,12 +261,24 @@ public class GameService {
             throw new IllegalArgumentException("The session of this id does not exists");
         }
 
-        User user = userRegulation.getUser(username);
-        if (user == null) {
-            throw new IllegalArgumentException("The user is not logged in");
-        }
+        // TODO: use this once login issue is fixed.
+        //User user = userRegulation.getUser(username);
+        //if (user == null) {
+        //    throw new IllegalArgumentException("The user is not logged in");
+        //}
+
+        //TODO: delete this and use above once login issue is fixed.
 
         GameSession session = sessions.get(sessionId);
+        User user;
+        try {
+            user = userRegulation.getUser(username);
+        } catch (Exception e) {
+            user = new User(username, "password");
+        }
+        if (user == null) {
+            user = new User(username, "password");
+        }
 
         if (!session.isPlayerAdded(username)) {
             throw new IllegalStateException("Player is not in this session");
@@ -233,13 +286,17 @@ public class GameService {
 
         session.markPlayerFinished(username);
 
-        return new FinishAckResponse(
+        FinishAckResponse res = new FinishAckResponse(
                 sessionId,
                 username,
                 session.isRoundEnded(),
                 session.isPlayerFinished(username),
                 session.haveAllPlayersFinished()
         );
+
+        checkAndBroadcastResults(sessionId);
+
+        return res;
     }
 
     /**
@@ -258,11 +315,22 @@ public class GameService {
         }
         GameSession session = sessions.get(sessionId);
 
-        User user = userRegulation.getUser(username);
-        if (user == null) {
-            throw new IllegalArgumentException("The user is not logged in");
-        }
+        // TODO: use this once login issue is fixed.
+        //User user = userRegulation.getUser(username);
+        //if (user == null) {
+        //    throw new IllegalArgumentException("The user is not logged in");
+        //}
 
+        // TODO: delete this and use above once login issue is fixed.
+        User user;
+        try {
+            user = userRegulation.getUser(username);
+        } catch (Exception e) {
+            user = new User(username, "password");
+        }
+        if (user == null) {
+            user = new User(username, "password");
+        }
         Player player = new Player(user, calc);
         session.addPlayer(player);
 
@@ -349,6 +417,28 @@ public class GameService {
         GameSession session = sessions.get(sessionId);
 
         return session.getAcceptedWords(username);
+    }
+
+    private void checkAndBroadcastResults(int sessionId) {
+        GameSession session = sessions.get(sessionId);
+
+        if (!session.haveAllPlayersFinished()) return;
+        if (session.isResultsComputed()) return;
+
+        Map<String, Integer> scores = session.computeFinalScores();
+        String winner = session.determineWinner();
+
+        session.setResultsComputed(true);
+
+        gameEventService.broadcastToSession(
+                String.valueOf(sessionId),
+                "game-results",
+                Map.of(
+                        "sessionId", sessionId,
+                        "scores", scores,
+                        "winner", winner
+                )
+        );
     }
 
     /**
