@@ -46,8 +46,13 @@ export default function useGameStream({
       `http://localhost:8080/api/game/stream?sessionId=${sessionId}`
     );
 
+    es.addEventListener("connected", (e: MessageEvent) => {
+      console.log("SSE connected:", e.data);
+    });
+
     es.addEventListener("game-started", (e: MessageEvent) => {
       const data: GameStartedEvent = JSON.parse(e.data);
+      console.log("game-started received:", data);
       onGameStarted?.(data);
     });
 
@@ -57,17 +62,18 @@ export default function useGameStream({
     });
 
     es.addEventListener("round-ended", () => {
+      console.log("round-ended received");
       onRoundEnded?.();
     });
 
     es.addEventListener("game-results", (e: MessageEvent) => {
       const data: GameResultsEvent = JSON.parse(e.data);
+      console.log("game-results received:", data);
       onGameResults?.(data);
     });
 
-    es.onerror = () => {
-      console.error("SSE connection error");
-      es.close();
+    es.onerror = (event) => {
+      console.error("SSE connection error", event);
     };
 
     return () => {

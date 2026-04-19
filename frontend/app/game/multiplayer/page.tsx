@@ -1,46 +1,85 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import BoggleBoard, { BoggleBoardHandle } from "../../components/boggle-board";
+import WordInput from "../../components/word-input";
+import ScoreDisplay from "../../components/score-display";
 import useGameStream, {
-  GameResultsEvent,
   GameStartedEvent,
-  GameStateEvent,
-} from "@/app/components/use-game-stream";
-import useMultiplayerWordSubmission from "@/app/components/use-multiplayer-word-submission";
-import MultiplayerScoreDisplay from "@/app/components/multiplayer-score-display";
+  GameResultsEvent,
+} from "../../components/use-game-stream";
 
-export default function MultiplayerGamePage() {
+export default function MultiplayerPage() {
   const params = useSearchParams();
-
   const sessionId = Number(params.get("sessionId"));
   const username = params.get("username") || "user";
 
-  const [board, setBoard] = useState<string[][] | null>(null);
+  const defaultBoard = [
+    ["T", "E", "S", "T", "S"],
+    ["W", "O", "R", "D", "S"],
+    ["G", "A", "M", "E", "S"],
+    ["P", "L", "A", "Y", "S"],
+    ["B", "O", "G", "G", "L"],
+  ];
+
+  const [gameActive, setGameActive] = useState(false);
   const [roundEnded, setRoundEnded] = useState(false);
+  const [board, setBoard] = useState<string[][]>(defaultBoard);
+  const [submittedWords, setSubmittedWords] = useState<string[]>([]);
+  const [currentScore, setCurrentScore] = useState(0);
   const [result, setResult] = useState<GameResultsEvent | null>(null);
 
-  const {
-    input,
-    setInput,
-    submitWord,
-    score,
-    words,
-  } = useMultiplayerWordSubmission(sessionId, username);
+  const boggleBoardRef = useRef<BoggleBoardHandle>(null);
 
-  const handleGameStarted = useCallback((data: GameStartedEvent) => {
-    setBoard(data.board);
-    setRoundEnded(false);
+  const resetRoundState = useCallback(() => {
+    setSubmittedWords([]);
+    setCurrentScore(0);
     setResult(null);
+    setRoundEnded(false);
   }, []);
 
-  const handleGameState = useCallback((_data: GameStateEvent) => {
-    // useMultiplayerWordSubmission already updates local UI
-    // from /api/submit-word responses, so nothing is needed here for now.
-  }, []);
+  const verifyWord = useCallback(
+    async (word: string) => {
+      if (!gameActive || roundEnded) {
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/submit-word?sessionId=${sessionId}&username=${username}&word=${encodeURIComponent(word)}`,
+          { method: "POST" }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to submit word");
+        }
+
+        const data = await response.json();
+
+        setSubmittedWords(data.acceptedWords ?? []);
+        setCurrentScore(data.currentScore ?? 0);
+
+        return data;
+      } catch (error) {
+        console.error("Failed to submit multiplayer word", error);
+      }
+    },
+    [gameActive, roundEnded, sessionId, username]
+  );
+
+  const handleGameStarted = useCallback(
+    (data: GameStartedEvent) => {
+      setBoard(data.board);
+      resetRoundState();
+      setGameActive(true);
+    },
+    [resetRoundState]
+  );
 
   const handleRoundEnded = useCallback(async () => {
     setRoundEnded(true);
+    setGameActive(false);
 
     try {
       await fetch(
@@ -48,7 +87,7 @@ export default function MultiplayerGamePage() {
         { method: "POST" }
       );
     } catch (error) {
-      console.error("Failed to acknowledge round finish:", error);
+      console.error("Failed to acknowledge round finish", error);
     }
   }, [sessionId, username]);
 
@@ -59,68 +98,70 @@ export default function MultiplayerGamePage() {
   useGameStream({
     sessionId,
     onGameStarted: handleGameStarted,
-    onGameState: handleGameState,
     onRoundEnded: handleRoundEnded,
     onGameResults: handleGameResults,
   });
 
-  if (!board) {
-    return <div>Waiting for game to start...</div>;
-  }
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    boggleBoardRef.current?.handleMouseDown(e);
+  }, []);
+
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    boggleBoardRef.current?.handleMouseUp(e);
+  }, []);
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <MultiplayerScoreDisplay score={score} />
-
-      <div className="grid grid-cols-4 gap-2">
-        {board.map((row, i) =>
-          row.map((cell, j) => (
-            <div
-              key={`${i}-${j}`}
-              className="w-12 h-12 border flex items-center justify-center text-lg"
-            >
-              {cell}
-            </div>
-          ))
-        )}
-      </div>
-
-      {!roundEnded && (
-        <div className="flex gap-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="border p-2"
-          />
-          <button onClick={submitWord} className="border px-4">
-            Submit
-          </button>
-        </div>
-      )}
-
-      <div>
-        {words.map((word, index) => (
-          <div key={index}>{word}</div>
-        ))}
-      </div>
-
-      {roundEnded && !result && (
-        <div className="text-lg">Waiting for results...</div>
-      )}
-
-      {result && (
-        <div className="mt-4 flex flex-col items-center gap-2 border p-4">
-          <h2 className="text-xl font-bold">Winner: {result.winner}</h2>
-
-          <div>
-            {Object.entries(result.scores).map(([user, playerScore]) => (
-              <div key={user}>
-                {user}: {playerScore}
-              </div>
-            ))}
+    <div
+      className="flex min-h-screen items-center justify-center bg-amber-100 font-sans dark:bg-amber-100"
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+    >
+      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center justify-center bg-amber-100 px-16 py-32 dark:bg-amber-100">
+        {!gameActive && !roundEnded && !result && (
+          <div className="mb-6 text-xl font-semibold">
+            Waiting for game to start...
           </div>
-        </div>
-      )}
+        )}
+
+        {roundEnded && !result && (
+          <div className="mb-6 text-xl font-semibold">
+            Waiting for results...
+          </div>
+        )}
+
+        {result && (
+          <div className="mb-6 flex flex-col items-center gap-2">
+            <div className="text-2xl font-bold">
+              Winner: {result.winner}
+            </div>
+            <div className="flex flex-col items-center text-lg">
+              {Object.entries(result.scores).map(([player, score]) => (
+                <div key={player}>
+                  {player}: {score}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <BoggleBoard
+          ref={boggleBoardRef}
+          submittedWords={submittedWords}
+          verifyWord={verifyWord}
+          gameActive={gameActive}
+          board={board}
+        />
+
+        {gameActive && (
+          <>
+            <WordInput submittedWords={submittedWords} />
+            <ScoreDisplay
+              submittedWords={submittedWords}
+              currentScore={currentScore}
+            />
+          </>
+        )}
+      </main>
     </div>
   );
 }
