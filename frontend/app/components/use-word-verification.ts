@@ -77,9 +77,7 @@ export default function useWordVerification(): {
                 setLoading(false);
                 return false;
             }
-        },
-        [submittedWords],
-    );
+        }, [submittedWords, currentScore]);
 
     /** Clears submitted words and resets score on game end or play again. */
     const resetWords = useCallback(() => {

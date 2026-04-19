@@ -68,7 +68,7 @@ export default function Home() {
     generateBoard();
     setGameActive(true);
     resetWords();
-  }, [resetWords]);
+  }, [resetWords, generateBoard]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     boggleBoardRef.current?.handleMouseDown(e);
