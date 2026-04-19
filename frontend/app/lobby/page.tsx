@@ -15,40 +15,6 @@ type LobbyPlayer = {
 };
 
 /**
- * GET request for the sessionId a player is in given the username
- * @returns int sessionId
- */
-function getSessionId() {
-  const username = window.sessionStorage.getItem("username");
-
-  if (!username) {
-    console.error("No username found in sessionStorage");
-    return;
-  }
-
-  fetch(`/api/session?username=${encodeURIComponent(username)}`, {
-    method: "GET",
-  })
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error("Failed to fetch session");
-      }
-      return res.json(); // since your controller returns an int, Spring sends JSON number
-    })
-    .then((sessionId) => {
-      if (sessionId === -1) {
-        throw new Error("User is not in a session");
-      } else {
-        console.log("User is in session:", sessionId);
-        return sessionId;
-      }
-    })
-    .catch((err) => {
-      console.error("Error fetching session:", err);
-    });
-}
-
-/**
  * Builds the initial mock player list for the lobby.
  * Reads the current user's name from sessionStorage.
  *
@@ -93,13 +59,28 @@ const getServerSnapshot = (): boolean => false;
 export default function LobbyPage(): React.JSX.Element {
   const router = useRouter();
   const [players, setPlayers] = useState<LobbyPlayer[]>(buildInitialPlayers);
+  const [sessionId, setSessionId] = useState<number>(NaN);
+
   const mounted = useSyncExternalStore(
     emptySubscribe,
     getClientSnapshot,
     getServerSnapshot,
   );
+
+  // Fetch session id of player (given username)
   useEffect(() => {
-    getSessionId();
+    const username = window.sessionStorage.getItem("username")?.trim();
+    if (!username) {
+      throw new Error("No username found in session storage.");
+    }
+
+    fetch(`/api/session?username=${encodeURIComponent(username)}`)
+      .then((res) => res.json())
+      .then((id: number) => {
+        if (id === -1) throw new Error("User is not in a session");
+        setSessionId(id);
+      })
+      .catch(console.error);
   }, []);
 
   /**
