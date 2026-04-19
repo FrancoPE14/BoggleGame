@@ -56,7 +56,9 @@ export default function LobbyPage() {
       })
       .then((data) => {
         console.log("Joined lobby:", data);
-        router.push("/lobby");
+        router.push(
+          `/game/multiplayer?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
+        );
       })
       .catch((err) => {
         console.error("Error joining lobby:", err);
