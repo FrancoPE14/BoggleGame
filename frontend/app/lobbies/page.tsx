@@ -2,6 +2,7 @@
 
 import LobbyCard from "./components/lobby-card";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface Lobby {
   sessionId: number;
@@ -13,6 +14,7 @@ interface Lobby {
 
 export default function LobbyPage() {
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     fetch("/api/sessions")
@@ -39,22 +41,26 @@ export default function LobbyPage() {
       return;
     }
 
-    fetch(`/api/join?sessionId=${sessionId}&username=${encodeURIComponent(username)}`, {
+    fetch(
+      `/api/join?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
+      {
         method: "POST",
+      },
+    )
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Failed to join lobby: ${res.status} ${text}`);
+        }
+        return res.json();
       })
-        .then(async (res) => {
-          if (!res.ok) {
-            const text = await res.text();
-            throw new Error(`Failed to join lobby: ${res.status} ${text}`);
-          }
-          return res.json();
-        })
-        .then((data) => {
-          console.log("Joined lobby:", data);
-        })
-        .catch((err) => {
-          console.error("Error joining lobby:", err);
-        });
+      .then((data) => {
+        console.log("Joined lobby:", data);
+        router.push("/lobby");
+      })
+      .catch((err) => {
+        console.error("Error joining lobby:", err);
+      });
   }
 
   return (
