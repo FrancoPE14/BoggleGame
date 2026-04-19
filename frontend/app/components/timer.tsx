@@ -3,16 +3,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import GameOver from "./game-over";
 
-const GAME_DURATION_SECONDS = 3 * 60; // 3 minutes
-
 interface TimerProps {
+    durationSeconds?: number;
     onGameStart?: () => void;
     onGameEnd?: () => void;
     finalScore?: number;
 }
 
-export default function Timer({ onGameStart, onGameEnd, finalScore = 0 }: TimerProps) {
-    const [secondsLeft, setSecondsLeft] = useState(GAME_DURATION_SECONDS);
+export default function Timer({ durationSeconds = 180, onGameStart, onGameEnd, finalScore = 0 }: TimerProps) {
+    const [secondsLeft, setSecondsLeft] = useState(durationSeconds);
     const [status, setStatus] = useState<"idle" | "running" | "ended">("running");
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -65,11 +64,11 @@ export default function Timer({ onGameStart, onGameEnd, finalScore = 0 }: TimerP
     }, [status, handleGameEnd]);
 
     /**
-     * Resets and restarts the timer from the full duration.
+     * Resets and restarts the timer from the selected duration.
      */
     const handleStart = () => {
         clearTimer();
-        setSecondsLeft(GAME_DURATION_SECONDS);
+        setSecondsLeft(durationSeconds);
         setStatus("running");
         onGameStart?.();
     };
