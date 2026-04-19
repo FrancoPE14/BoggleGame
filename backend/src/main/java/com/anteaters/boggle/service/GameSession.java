@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -389,6 +390,45 @@ public class GameSession{
         }
 
         return wordSubmissionService.submitWord(word, player.getTracker());
+    }
+
+    /**
+     * Computes final results for the session.
+     *
+     * @return map of username -> score
+     */
+    public Map<String, Integer> computeFinalScores() {
+        Map<String, Integer> scores = new HashMap<>();
+
+        for (Player player : players) {
+            if (player != null) {
+                scores.put(player.getUsername(), player.getScore());
+            }
+        }
+
+        return scores;
+    }
+
+    /**
+     * Determines the winner of the session.
+     *
+     * @return username of the winner
+     */
+    public String determineWinner() {
+        String winner = null;
+        int maxScore = -1;
+
+        for (Player player : players) {
+            if (player != null) {
+                int score = player.getScore();
+                if (score > maxScore) {
+                    maxScore = score;
+                    winner = player.getUsername();
+                }
+            }
+        }
+
+        return winner;
     }
 
     /**
