@@ -39,26 +39,22 @@ export default function LobbyPage() {
       return;
     }
 
-    fetch("/api/join", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sessionId: sessionId,
-        username: username,
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to join lobby");
-        return res.json();
+    fetch(`/api/join?sessionId=${sessionId}&username=${encodeURIComponent(username)}`, {
+        method: "POST",
       })
-      .then((data) => {
-        console.log("Joined lobby:", data);
-      })
-      .catch((err) => {
-        console.error("Error joining lobby:", err);
-      });
+        .then(async (res) => {
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Failed to join lobby: ${res.status} ${text}`);
+          }
+          return res.json();
+        })
+        .then((data) => {
+          console.log("Joined lobby:", data);
+        })
+        .catch((err) => {
+          console.error("Error joining lobby:", err);
+        });
   }
 
   return (
