@@ -94,7 +94,7 @@ public class GameController{
         response.put("status", succeed);
         response.put("username", username);
         response.put("sessionId", sessionId);
-        response.put("board", board);
+        response.put("board", board == null ? null : board.boardToStringArray());
         response.put("err", errMsg);
 
         return response;

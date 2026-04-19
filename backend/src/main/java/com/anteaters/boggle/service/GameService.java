@@ -237,7 +237,7 @@ public class GameService {
                 "game-started",
                 Map.of(
                         "sessionId", sessionId,
-                        "board", board
+                        "board", board.boardToStringArray()
                 )
         );
 
@@ -268,7 +268,6 @@ public class GameService {
         //}
 
         //TODO: delete this and use above once login issue is fixed.
-
         GameSession session = sessions.get(sessionId);
         User user;
         try {
