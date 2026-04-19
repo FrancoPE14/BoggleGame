@@ -130,20 +130,6 @@ export default function MultiplayerPage() {
           </div>
         )}
 
-        {result && (
-          <div className="mt-6 flex flex-col items-center gap-2">
-            <div className="text-2xl font-bold">
-              Winner: {result.winner}
-            </div>
-            <div className="flex flex-col items-center text-lg">
-              {Object.entries(result.scores).map(([player, score]) => (
-                <div key={player}>
-                  {player}: {score}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
         {finalScores && (
             <GameOver
                 onPlayAgain={() => router.push("/")}
