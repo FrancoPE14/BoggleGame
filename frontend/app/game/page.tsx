@@ -24,18 +24,18 @@ export default function Home() {
 
   const [finalScore, setFinalScore] = useState(0);
   const [gameActive, setGameActive] = useState(false);
-  const [board, setBoard] = useState<string[][]>(() =>
-      Array(boardSize).fill(null).map(() => Array(boardSize).fill(""))
-  );
+  const [board, setBoard] = useState<string[][] | null>(null);
   const { submittedWords, verifyWord, resetWords, currentScore } =
     useWordVerification();
   const boggleBoardRef = useRef<BoggleBoardHandle>(null);
 
   function generateBoard() {
+    console.log("generating board with size:", boardSize);
     fetch(`/api/generate?size=${boardSize}`)
         .then((res) => res.json())
         .then((b) => {
           setBoard(b);
+          console.log(b);
         })
         .catch((error) => console.error("Error: ", error));
   }
@@ -46,12 +46,13 @@ export default function Home() {
    */
   const handleGameEnd = useCallback(() => {
     setGameActive(false);
+    console.log("handleGameEnd fired, currentScore:", currentScore);
     setFinalScore(currentScore); // capture before resetWords clears it
 
     const username = window.sessionStorage.getItem("username");
     if (username) {
       fetch(
-          `http://localhost:8080/api/user/score?username=${encodeURIComponent(username)}&score=${currentScore}`,
+          `/api/user/score?username=${encodeURIComponent(username)}&score=${currentScore}`,
           { method: "PUT" },
       ).catch((err) => console.error("Score submit failed:", err));
     }
@@ -91,13 +92,15 @@ export default function Home() {
             durationSeconds={duration}
         />
 
-        <BoggleBoard
-          ref={boggleBoardRef}
-          submittedWords={submittedWords}
-          verifyWord={verifyWord}
-          gameActive={gameActive}
-          board={board}
-        />
+        {board && (
+            <BoggleBoard
+                ref={boggleBoardRef}
+                submittedWords={submittedWords}
+                verifyWord={verifyWord}
+                gameActive={gameActive}
+                board={board}
+            />
+        )}
 
         {gameActive && (
             <>

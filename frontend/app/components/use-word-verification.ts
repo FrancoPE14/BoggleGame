@@ -59,7 +59,7 @@ export default function useWordVerification(): {
 
             try {
                 const res = await fetch(
-                    `http://localhost:8080/api/verify?word=${encodeURIComponent(normalized)}`,
+                    `/api/verify?word=${encodeURIComponent(normalized)}`,
                 );
                 const data: { word: string; valid: boolean } = await res.json();
 
@@ -71,6 +71,7 @@ export default function useWordVerification(): {
                 ]);
 
                 setLoading(false);
+                console.log("word verified, pointsAwarded:", pointsAwarded, "new total would be:", currentScore + pointsAwarded);
                 return data.valid;
             } catch {
                 setLoading(false);
