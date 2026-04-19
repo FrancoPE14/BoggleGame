@@ -8,9 +8,9 @@ import { useState, useCallback } from "react";
  * where n is the number of letters in the word.
  */
 function calculateScore(wordLength: number): number {
-    if (wordLength < 3) return 0;
-    const n = wordLength;
-    return 100 + 50 * (n - 3) + 10 * (n - 3) * (n - 4) / 2;
+  if (wordLength < 3) return 0;
+  const n = wordLength;
+  return 100 + 50 * (n - 3) + (10 * (n - 3) * (n - 4)) / 2;
 }
 
 /**
@@ -18,9 +18,9 @@ function calculateScore(wordLength: number): number {
  * Score is calculated locally using the team scoring formula.
  */
 export type SubmittedWord = {
-    word: string;
-    valid: boolean;
-    pointsAwarded: number;
+  word: string;
+  valid: boolean;
+  pointsAwarded: number;
 };
 
 /**
@@ -28,65 +28,70 @@ export type SubmittedWord = {
  * Uses GET /api/verify for dictionary checks; scoring is computed client-side.
  */
 export default function useWordVerification(): {
-    submittedWords: SubmittedWord[];
-    verifyWord: (word: string) => Promise<boolean>;
-    loading: boolean;
-    currentScore: number;
-    resetWords: () => void;
+  submittedWords: SubmittedWord[];
+  verifyWord: (word: string) => Promise<boolean>;
+  loading: boolean;
+  currentScore: number;
+  resetWords: () => void;
 } {
-    const [submittedWords, setSubmittedWords] = useState<SubmittedWord[]>([]);
-    const [loading, setLoading] = useState(false);
+  const [submittedWords, setSubmittedWords] = useState<SubmittedWord[]>([]);
+  const [loading, setLoading] = useState(false);
 
-    // Derived from submittedWords — no separate state needed
-    const currentScore = submittedWords.reduce(
-        (total, w) => (w.valid ? total + w.pointsAwarded : total),
-        0,
-    );
+  // Derived from submittedWords — no separate state needed
+  const currentScore = submittedWords.reduce(
+    (total, w) => (w.valid ? total + w.pointsAwarded : total),
+    0,
+  );
 
-    /**
-     * Submits a word for dictionary verification against the backend.
-     * Score is calculated locally on valid words.
-     */
-    const verifyWord = useCallback(
-        async (word: string): Promise<boolean> => {
-            const normalized = word.trim().toUpperCase();
+  /**
+   * Submits a word for dictionary verification against the backend.
+   * Score is calculated locally on valid words.
+   */
+  const verifyWord = useCallback(
+    async (word: string): Promise<boolean> => {
+      const normalized = word.trim().toUpperCase();
 
-            if (normalized.length < 3) return false;
+      if (normalized.length < 3) return false;
 
-            if (submittedWords.some((w) => w.word === normalized)) return false;
+      if (submittedWords.some((w) => w.word === normalized)) return false;
 
-            setLoading(true);
+      setLoading(true);
 
-            try {
-                const res = await fetch(
-<<<<<<< HEAD
-                    `http://163.192.206.210:8080/api/verify?word=${encodeURIComponent(normalized)}`,
-=======
-                    `/api/verify?word=${encodeURIComponent(normalized)}`,
->>>>>>> main
-                );
-                const data: { word: string; valid: boolean } = await res.json();
+      try {
+        const res = await fetch(
+          `/api/verify?word=${encodeURIComponent(normalized)}`,
+        );
+        const data: { word: string; valid: boolean } = await res.json();
 
-                const pointsAwarded = data.valid ? calculateScore(normalized.length) : 0;
+        const pointsAwarded = data.valid
+          ? calculateScore(normalized.length)
+          : 0;
 
-                setSubmittedWords((prev) => [
-                    { word: normalized, valid: data.valid, pointsAwarded },
-                    ...prev,
-                ]);
+        setSubmittedWords((prev) => [
+          { word: normalized, valid: data.valid, pointsAwarded },
+          ...prev,
+        ]);
 
-                setLoading(false);
-                console.log("word verified, pointsAwarded:", pointsAwarded, "new total would be:", currentScore + pointsAwarded);
-                return data.valid;
-            } catch {
-                setLoading(false);
-                return false;
-            }
-        }, [submittedWords, currentScore]);
+        setLoading(false);
+        console.log(
+          "word verified, pointsAwarded:",
+          pointsAwarded,
+          "new total would be:",
+          currentScore + pointsAwarded,
+        );
+        return data.valid;
+      } catch {
+        setLoading(false);
+        return false;
+      }
+    },
+    [submittedWords, currentScore],
+  );
 
-    /** Clears submitted words and resets score on game end or play again. */
-    const resetWords = useCallback(() => {
-        setSubmittedWords([]);
-    }, []);
+  /** Clears submitted words and resets score on game end or play again. */
+  const resetWords = useCallback(() => {
+    setSubmittedWords([]);
+  }, []);
 
-    return { submittedWords, verifyWord, loading, currentScore, resetWords };
+  return { submittedWords, verifyWord, loading, currentScore, resetWords };
 }
