@@ -45,17 +45,17 @@ export default function Page() {
 
     return (
         // improve UI layout design using ChatGPT
-        <div className="container py-5">
+        <div className="min-h-screen w-full bg-amber-100 flex flex-col py-5">
             <div
                 className="shadow-lg mx-auto"
                 style={{
                     maxWidth: "600px",
-                    backgroundColor: "#ffffff",
+                    backgroundColor: "#fffbeb",
                     borderRadius: "16px",
                     padding: "2rem",
                 }}
             >
-                <h1 className="text-center mb-4" style={{ color: "#5a4a00" }}>
+                <h1 className="text-center mb-4" style={{color: "#5a4a00"}}>
                     Leaderboard
                 </h1>
 
@@ -76,7 +76,7 @@ export default function Page() {
                 {!loading && !error && players.length > 0 && (
                     <table className="table">
                         <thead>
-                        <tr style={{ borderBottom: "2px solid #f3e7b3" }}>
+                        <tr style={{borderBottom: "2px solid #f3e7b3"}}>
                             <th>Rank</th>
                             <th>Player</th>
                             <th className="text-end">Highest Score</th>

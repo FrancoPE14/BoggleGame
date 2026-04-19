@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useState, useCallback, useRef } from "react";
 import BoggleBoard, { BoggleBoardHandle } from "../components/boggle-board";
 import WordInput from "../components/word-input";
@@ -9,6 +10,9 @@ import Timer from "../components/timer";
 import useWordVerification from "../components/use-word-verification";
 
 export default function Home() {
+  const searchParams = useSearchParams();
+  const duration = Number(searchParams.get("duration")) || 180;
+
   const defaultBoard = [
     ["T", "E", "S", "T", "S"],
     ["W", "O", "R", "D", "S"],
@@ -17,6 +21,7 @@ export default function Home() {
     ["B", "O", "G", "G", "L"],
   ];
 
+  const [finalScore, setFinalScore] = useState(0);
   const [gameActive, setGameActive] = useState(false);
   const [board, setBoard] = useState(defaultBoard);
   const { submittedWords, verifyWord, resetWords, currentScore } =
@@ -24,7 +29,7 @@ export default function Home() {
   const boggleBoardRef = useRef<BoggleBoardHandle>(null);
 
   function generateBoard() {
-    fetch("http://localhost:8080/api/generate")
+    fetch("/api/generate")
       .then((res) => res.json())
       .then((b) => {
         setBoard(b);
@@ -39,8 +44,18 @@ export default function Home() {
    */
   const handleGameEnd = useCallback(() => {
     setGameActive(false);
+    setFinalScore(currentScore); // capture before resetWords clears it
+
+    const username = window.sessionStorage.getItem("username");
+    if (username) {
+      fetch(
+          `http://localhost:8080/api/user/score?username=${encodeURIComponent(username)}&score=${currentScore}`,
+          { method: "PUT" },
+      ).catch((err) => console.error("Score submit failed:", err));
+    }
+
     resetWords();
-  }, [resetWords]);
+  }, [resetWords, currentScore]);
 
   /**
    * Called on initial mount and when the player clicks Play Again.
@@ -67,7 +82,12 @@ export default function Home() {
       onMouseUp={handleMouseUp}
     >
       <main className="flex min-h-screen w-full max-w-3xl mx-auto flex-col items-center justify-center py-32 px-16 bg-amber-100 dark:bg-amber-100">
-        <Timer onGameStart={handleGameStart} onGameEnd={handleGameEnd} />
+        <Timer
+            onGameStart={handleGameStart}
+            onGameEnd={handleGameEnd}
+            finalScore={finalScore}
+            durationSeconds={duration}
+        />
 
         <BoggleBoard
           ref={boggleBoardRef}
@@ -78,13 +98,10 @@ export default function Home() {
         />
 
         {gameActive && (
-          <>
-            <WordInput submittedWords={submittedWords} />
-            <ScoreDisplay
-              submittedWords={submittedWords}
-              currentScore={currentScore}
-            />
-          </>
+            <>
+              <WordInput submittedWords={submittedWords} />
+              <ScoreDisplay submittedWords={submittedWords} />
+            </>
         )}
       </main>
     </div>

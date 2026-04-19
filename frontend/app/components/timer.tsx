@@ -3,15 +3,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import GameOver from "./game-over";
 
-const GAME_DURATION_SECONDS = 3 * 60; // 3 minutes
-
 interface TimerProps {
+    durationSeconds?: number;
     onGameStart?: () => void;
     onGameEnd?: () => void;
+    finalScore?: number;
 }
 
-export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
-    const [secondsLeft, setSecondsLeft] = useState(GAME_DURATION_SECONDS);
+export default function Timer({ durationSeconds = 180, onGameStart, onGameEnd, finalScore = 0 }: TimerProps) {
+    const [secondsLeft, setSecondsLeft] = useState(durationSeconds);
     const [status, setStatus] = useState<"idle" | "running" | "ended">("running");
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -25,8 +25,8 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
     }, []);
 
     /**
-     * Clears the active countdown interval if one exists
-     * */
+     * Clears the active countdown interval if one exists.
+     */
     const clearTimer = () => {
         if (intervalRef.current !== null) {
             clearInterval(intervalRef.current);
@@ -35,8 +35,8 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
     };
 
     /**
-     * Stops the timer, updates status to ended, and notifies parent
-     * */
+     * Stops the timer, updates status to ended, and notifies parent.
+     */
     const handleGameEnd = useCallback(() => {
         clearTimer();
         setStatus("ended");
@@ -45,8 +45,8 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
     }, [onGameEnd]);
 
     /**
-     * Starts a 1-second interval countdown when status is "running"
-     * */
+     * Starts a 1-second interval countdown when status is "running".
+     */
     useEffect(() => {
         if (status !== "running") return;
 
@@ -64,18 +64,18 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
     }, [status, handleGameEnd]);
 
     /**
-     * Resets and restarts the timer from the full duration
-     * */
+     * Resets and restarts the timer from the selected duration.
+     */
     const handleStart = () => {
         clearTimer();
-        setSecondsLeft(GAME_DURATION_SECONDS);
+        setSecondsLeft(durationSeconds);
         setStatus("running");
         onGameStart?.();
     };
 
     /**
-     * Manually ends the game before time runs out
-     * */
+     * Manually ends the game before time runs out.
+     */
     const handleEnd = () => {
         handleGameEnd();
     };
@@ -100,7 +100,9 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
                 )}
             </div>
 
-            {status === "ended" && <GameOver onPlayAgain={handleStart} finalScores={[]} isMultiplayer={false} />}
+            {status === "ended" && (
+                <GameOver onPlayAgain={handleStart} finalScore={finalScore} />
+            )}
         </>
     );
 }

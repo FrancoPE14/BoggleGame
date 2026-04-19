@@ -30,7 +30,7 @@ export default function Register() {
         }
 
         // Backend register endpoint currently accepts credentials via query params on a POST.
-        fetch(`http://localhost:8080/api/register?username=${username}&password=${password}`, {
+        fetch(`/api/register?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
             method: "POST"
         }).then(res => {
             if (res.status === 200) {

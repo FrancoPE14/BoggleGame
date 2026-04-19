@@ -17,7 +17,7 @@ export default function Home() {
         </Button>
 
         <Button
-          href="/lobby"
+          href="/lobbies"
           variant="outline-dark"
           size="lg"
           className="mt-1 mb-1 ms-1 me-1"

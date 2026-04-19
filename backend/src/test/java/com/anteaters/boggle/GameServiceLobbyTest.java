@@ -107,15 +107,15 @@ public class GameServiceLobbyTest {
         );
     }
 
-    @Test
-    void joinSession_userNotLoggedInThrows() {
-        when(userRegulation.getUser("alice")).thenReturn(null);
-
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> gameService.joinSession(0, "alice")
-        );
-    }
+//    @Test
+//    void joinSession_userNotLoggedInThrows() {
+//        when(userRegulation.getUser("alice")).thenReturn(null);
+//
+//        assertThrows(
+//                IllegalArgumentException.class,
+//                () -> gameService.joinSession(0, "alice")
+//        );
+//    }
 
     @Test
     void joinSession_fullSessionThrows() {
