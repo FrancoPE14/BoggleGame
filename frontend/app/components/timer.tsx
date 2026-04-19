@@ -15,6 +15,11 @@ export default function Timer({ durationSeconds = 180, onGameStart, onGameEnd, f
     const [status, setStatus] = useState<"idle" | "running" | "ended">("running");
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+    const onGameEndRef = useRef(onGameEnd);
+    useEffect(() => {
+        onGameEndRef.current = onGameEnd;
+    }, [onGameEnd]);
+
     /**
      * Notify parent that game has started once on initial mount.
      * Intentionally omit callback deps so this does not re-run when the parent passes a new function reference.
@@ -40,9 +45,8 @@ export default function Timer({ durationSeconds = 180, onGameStart, onGameEnd, f
     const handleGameEnd = useCallback(() => {
         clearTimer();
         setStatus("ended");
-        setTimeout(() => onGameEnd?.(), 0);
-        // defers the parent update until after Timer finishes its own render cycle
-    }, [onGameEnd]);
+        setTimeout(() => onGameEndRef.current?.(), 0);
+    }, []);
 
     /**
      * Starts a 1-second interval countdown when status is "running".
