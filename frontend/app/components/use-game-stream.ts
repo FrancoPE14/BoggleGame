@@ -41,24 +41,6 @@ type Props = {
   onGameEnded?: (data: GameEndedEvent) => void;
 };
 
-export type LobbyUpdateEvent = {
-  sessionId: number;
-  started: boolean;
-  playerCount: number;
-  maxPlayers: number;
-  hostUsername: string;
-  joinedUsername: string;
-};
-
-type Props = {
-  sessionId: number;
-  onGameStarted?: (data: GameStartedEvent) => void;
-  onGameState?: (data: GameStateEvent) => void;
-  onGameResults?: (data: GameResultsEvent) => void;
-  onGameEnded?: (data: GameEndedEvent) => void;
-  onLobbyUpdate?: (data: LobbyUpdateEvent) => void;
-};
-
 export default function useGameStream({
   sessionId,
   onGameStarted,

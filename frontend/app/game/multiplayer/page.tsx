@@ -61,7 +61,7 @@ export default function MultiplayerPage() {
   useGameStream({
     sessionId,
     onGameStarted: handleGameStarted,
-    onRoundEnded: handleRoundEnded,
+    //onRoundEnded: handleRoundEnded,
     onGameResults: handleGameResults,
   });
 
@@ -85,6 +85,7 @@ export default function MultiplayerPage() {
             gameStarted={gameStarted}
             roundEnded={roundEnded}
             startSignal={startSignal}
+            onRoundEnded={handleRoundEnded}
           />
         )}
 
