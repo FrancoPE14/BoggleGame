@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
 import java.util.Map;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 public class UserProfileController {
@@ -57,6 +58,24 @@ public class UserProfileController {
         }
         userRepository.findById(username).ifPresent(user -> {
             user.setProfilePicture(imageData);
+            userRepository.save(user);
+        });
+        return ResponseEntity.ok(Map.of("status", true));
+    }
+
+    /**
+     * Submit a final score; updates highest_score if the new score is higher.
+     * Usage: PUT /api/user/score?username=Rae&score=450
+     */
+    @PutMapping("/api/user/score")
+    public ResponseEntity<Map<String, Object>> submitScore(
+            @RequestParam String username,
+            @RequestParam int score) {
+        if (!userService.isLoggedIn(username)) {
+            return ResponseEntity.status(401).body(Map.of("error", "Not logged in"));
+        }
+        userRepository.findById(username).ifPresent(user -> {
+            user.updateHighScore(score);
             userRepository.save(user);
         });
         return ResponseEntity.ok(Map.of("status", true));

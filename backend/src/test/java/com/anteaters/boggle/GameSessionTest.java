@@ -13,6 +13,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.anteaters.boggle.entity.User;
 
 /**
  * AI-generated test class for GameSession.
@@ -413,23 +414,31 @@ public class GameSessionTest {
      * has passed the session end time.</p>
      */
     @Test
-    public void updateFrontendTimerAfterExpirationEndsGame() throws Exception {
-        GameSession session = newSession(2);
+    void updateFrontendTimerAfterExpirationEndsRound() throws Exception {
+        UserRepository repo = mock(UserRepository.class);
+        WordSubmissionService wordSubmissionService = mock(WordSubmissionService.class);
+        GameEventService gameEventService = mock(GameEventService.class);
 
+        GameSession.resetIdCnt();
+        GameSession session = new GameSession(4, repo, wordSubmissionService, gameEventService);
+
+        User alice = new User("alice", "password");
+        session.addPlayer(new Player(alice, new ScoreCalculator()));
         session.startGame();
 
-        ScheduledFuture<?> future =
-                (ScheduledFuture<?>) getPrivateField(session, "scheduledFuture");
-        future.cancel(false);
+        Method updateTimer = GameSession.class.getDeclaredMethod("updateFrontendTimer");
+        updateTimer.setAccessible(true);
 
-        setPrivateField(session, "endTime", System.currentTimeMillis() - 1L);
+        Field endTimeField = GameSession.class.getDeclaredField("endTime");
+        endTimeField.setAccessible(true);
+        endTimeField.setLong(session, System.currentTimeMillis() - 1000);
 
-        invokePrivateNoArgMethod(session, "updateFrontendTimer");
+        updateTimer.invoke(session);
 
-        assertFalse(session.isStarted());
-        assertNull(getPrivateField(session, "scheduledFuture"));
-        assertEquals(-1L, getPrivateField(session, "startTime"));
-        assertEquals(-1L, getPrivateField(session, "endTime"));
+        assertTrue(session.isStarted());
+        assertTrue(session.isRoundEnded());
+        assertEquals(1, session.getNumPlayers());
+        assertEquals("alice", session.getHostUsername());
     }
 
     /**
