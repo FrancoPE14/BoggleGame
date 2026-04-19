@@ -456,11 +456,5 @@ public class GameService {
         GameSession session = sessions.get(sessionId);
 
         session.endGame();
-
-        gameEventService.broadcastToSession(
-                String.valueOf(sessionId),
-                "game-ended",
-                Map.of("sessionId", sessionId)
-        );
     }
 }

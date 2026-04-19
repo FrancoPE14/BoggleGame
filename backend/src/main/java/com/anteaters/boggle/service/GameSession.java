@@ -335,11 +335,23 @@ public class GameSession{
             scheduler = null;
         }
 
+        ArrayList<Map<String, Object>> finalScores = new ArrayList<>();
+        for (Player player : players) {
+            if (player != null) {
+                finalScores.add(Map.of("username", player.getUsername(), "score", player.getScore()));
+            }
+        }
+
+        finalScores.sort((a, b) -> Integer.compare((int) b.get("score"), (int) a.get("score")));
+
         if(gameEventService != null){
             gameEventService.broadcastToSession(
                     String.valueOf(sessionId),
                     "round-ended",
-                    Map.of("sessionId", sessionId)
+                    Map.of(
+                            "sessionId", sessionId,
+                            "finalScores", finalScores
+                    )
             );
         }
     }
@@ -355,7 +367,7 @@ public class GameSession{
         long timeLeft = duration - (curTime - startTime)/1000; // remaining time in seconds
         // TODO: send timeLeft to the frontend
         if(curTime >= endTime){
-            endRound();
+            endGame();
         }
     }
 
@@ -456,13 +468,29 @@ public class GameSession{
         startTime = -1;
         endTime = -1;
 
+        ArrayList<Map<String, Object>> finalScores = new ArrayList<>();
         for (Player player : players) {
             if(player!=null) {
+                finalScores.add(Map.of("username", player.getUsername(), "score", player.getScore()));
                 player.updateHighScore();
                 player.flushToDB(repo);
                 player.reset();
             }
         }
+
+        finalScores.sort((a, b) -> Integer.compare((int) b.get("score"), (int) a.get("score")));
+
+        if(gameEventService != null){
+            gameEventService.broadcastToSession(
+                    String.valueOf(sessionId),
+                    "game-ended",
+                    Map.of(
+                            "sessionId", sessionId,
+                            "finalScores", finalScores
+                    )
+            );
+        }
+
         resetSession();
     }
 

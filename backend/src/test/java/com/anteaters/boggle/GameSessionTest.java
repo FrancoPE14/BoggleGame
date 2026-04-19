@@ -412,7 +412,10 @@ public class GameSessionTest {
      *
      * <p>Verifies that updateFrontendTimer ends the game when the current time
      * has passed the session end time.</p>
+     *
+     * This got commented because we are now disabling the endRound functionality
      */
+    /*
     @Test
     void updateFrontendTimerAfterExpirationEndsRound() throws Exception {
         UserRepository repo = mock(UserRepository.class);
@@ -440,6 +443,7 @@ public class GameSessionTest {
         assertEquals(1, session.getNumPlayers());
         assertEquals("alice", session.getHostUsername());
     }
+    */
 
     /**
      * AI-generated helper method.

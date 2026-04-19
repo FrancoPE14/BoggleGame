@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from "react";
 
 export type GameStartedEvent = {
@@ -24,20 +26,27 @@ export type GameResultsEvent = {
   winner: string;
 };
 
+export type FinalScore = { username: string; score: number };
+
+export type GameEndedEvent = {
+  sessionId: number;
+  finalScores: FinalScore[];
+};
+
 type Props = {
   sessionId: number;
   onGameStarted?: (data: GameStartedEvent) => void;
   onGameState?: (data: GameStateEvent) => void;
-  onRoundEnded?: () => void;
   onGameResults?: (data: GameResultsEvent) => void;
+  onGameEnded?: (data: GameEndedEvent) => void;
 };
 
 export default function useGameStream({
   sessionId,
   onGameStarted,
   onGameState,
-  onRoundEnded,
   onGameResults,
+  onGameEnded,
 }: Props) {
   useEffect(() => {
     if (Number.isNaN(sessionId)) return;
@@ -61,15 +70,16 @@ export default function useGameStream({
       onGameState?.(data);
     });
 
-    es.addEventListener("round-ended", () => {
-      console.log("round-ended received");
-      onRoundEnded?.();
-    });
-
     es.addEventListener("game-results", (e: MessageEvent) => {
       const data: GameResultsEvent = JSON.parse(e.data);
       console.log("game-results received:", data);
       onGameResults?.(data);
+    });
+
+    es.addEventListener("game-ended", (e: MessageEvent) => {
+      const data: GameEndedEvent = JSON.parse(e.data);
+      console.log("game-ended received:", data);
+      onGameEnded?.(data);
     });
 
     es.onerror = (event) => {
@@ -79,5 +89,5 @@ export default function useGameStream({
     return () => {
       es.close();
     };
-  }, [sessionId, onGameStarted, onGameState, onRoundEnded, onGameResults]);
+  }, [sessionId, onGameStarted, onGameState, onGameResults, onGameEnded]);
 }
