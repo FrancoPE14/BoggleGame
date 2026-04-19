@@ -12,9 +12,9 @@ import com.anteaters.boggle.service.BoggleBoard;
 public class BoardController {
 
     @GetMapping("/api/generate")
-    public String[][] generateBoard(){
+    public String[][] generateBoard(@RequestParam int size){
 
-        BoggleBoard b = new BoggleBoard();
+        BoggleBoard b = new BoggleBoard(size);
         return b.boardToStringArray();
     }
 
