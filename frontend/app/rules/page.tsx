@@ -57,7 +57,7 @@ export default function InformationRulesPage() {
             <ul className="list-disc space-y-1 pl-5 leading-7" style={{ color: "#3f3f46" }}>
               <li>Each submitted word earns you points! The longer the word, the more points it earns.</li>
               <li>The same word cannot be scored more than once, even if it appears multiple times on the board.</li>
-              <li>Plural forms of words can be used (for example, both 'badger' and 'badgers' would be valid).</li>
+              <li>Plural forms of words can be used (for example, both &ldquo;badger&ldquo; and &ldquo;badgers&ldquo; would be valid).</li>
               <li>Final scores are based on valid words submitted during the round.</li>
             </ul>
           </section>
@@ -66,7 +66,7 @@ export default function InformationRulesPage() {
             <h2 className="mb-2 text-xl font-semibold" style={{ color: "#18181b" }}>Multiplayer</h2>
             <ul className="list-disc space-y-1 pl-5 leading-7" style={{ color: "#3f3f46" }}>
               <li>You can play with other players on the same board!</li>
-              <li>To play with friends, select the "play online" button on the home screen.</li>
+              <li>To play with friends, select the &ldquo;play online&ldquo; button on the home screen.</li>
             </ul>
           </section>
         </div>
