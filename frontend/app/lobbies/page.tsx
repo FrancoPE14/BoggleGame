@@ -30,8 +30,35 @@ export default function LobbyPage() {
   }, []);
 
   function enterLobby(sessionId: number) {
-    // enter specifc game lobby based on id
     console.log("Enter: " + sessionId);
+
+    const username = window.sessionStorage.getItem("username");
+
+    if (!username) {
+      console.error("No username found in sessionStorage");
+      return;
+    }
+
+    fetch("/api/join", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sessionId: sessionId,
+        username: username,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to join lobby");
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Joined lobby:", data);
+      })
+      .catch((err) => {
+        console.error("Error joining lobby:", err);
+      });
   }
 
   return (
