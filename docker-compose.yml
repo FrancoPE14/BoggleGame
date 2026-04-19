@@ -1,27 +1,48 @@
 services:
+  # --- BACKEND VM TIER ---
+  mysql:
+    image: boggle_sql:latest
+    container_name: boggle_mysql
+    profiles: ["api"]
+    env_file: .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-internal # Only these two need to talk internally
+
   backend:
+    build: ./backend
+    profiles: ["api"]
     restart: always
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    env_file:
-      - .env
+    env_file: .env
     ports:
       - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
     networks:
-      - frontend
+      - backend-internal
 
+  # --- FRONTEND VM TIER ---
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    build: ./frontend
+    profiles: ["ui"]
     ports:
       - "3000:3000"
-    depends_on:
-      - backend
     restart: unless-stopped
-    networks:
-      - frontend
+    # No network defined; uses the default bridge to access the outside world
+
+volumes:
+  mysql_data:
 
 networks:
-  frontend:
+  backend-internal:
+    driver: bridge

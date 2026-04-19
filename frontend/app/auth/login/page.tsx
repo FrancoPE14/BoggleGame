@@ -28,7 +28,7 @@ export default function Login() {
         }
 
         // Backend login endpoint currently accepts credentials via query params on a POST.
-        fetch(`http://localhost:8080/api/login?username=${username}&password=${password}`, {
+        fetch(`/api/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
             method: "POST"
         }).then(res => {
             if (res.status === 200) {

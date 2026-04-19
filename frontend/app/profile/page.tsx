@@ -29,7 +29,7 @@ export default function ProfilePage() {
         }
 
         // fetch profile data from backend on mount
-        fetch(`http://localhost:8080/api/user/profile?username=${username}`)
+        fetch(`/api/user/profile?username=${encodeURIComponent(username)}`)
             .then(res => {
                 if (res.status === 401) throw new Error('Not authenticated');
                 if (!res.ok) throw new Error('Failed to load profile');
@@ -55,7 +55,7 @@ export default function ProfilePage() {
         setUploadError(null);
         setUploadSuccess(false);
 
-        fetch(`http://localhost:8080/api/user/profile/picture?username=${username}`, {
+        fetch(`/api/user/profile/picture?username=${encodeURIComponent(username ?? "")}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ imageData: previewPic })

@@ -25,7 +25,7 @@ export default function Home() {
   const boggleBoardRef = useRef<BoggleBoardHandle>(null);
 
   function generateBoard() {
-    fetch("http://localhost:8080/api/generate")
+    fetch("/api/generate")
       .then((res) => res.json())
       .then((b) => {
         setBoard(b);
