@@ -59,7 +59,7 @@ export default function useWordVerification(): {
 
             try {
                 const res = await fetch(
-                    `http://localhost:8080/api/verify?word=${encodeURIComponent(normalized)}`,
+                    `http://163.192.206.210:8080/api/verify?word=${encodeURIComponent(normalized)}`,
                 );
                 const data: { word: string; valid: boolean } = await res.json();
 

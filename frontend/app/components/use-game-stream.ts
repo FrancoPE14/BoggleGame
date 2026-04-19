@@ -41,6 +41,24 @@ type Props = {
   onGameEnded?: (data: GameEndedEvent) => void;
 };
 
+export type LobbyUpdateEvent = {
+  sessionId: number;
+  started: boolean;
+  playerCount: number;
+  maxPlayers: number;
+  hostUsername: string;
+  joinedUsername: string;
+};
+
+type Props = {
+  sessionId: number;
+  onGameStarted?: (data: GameStartedEvent) => void;
+  onGameState?: (data: GameStateEvent) => void;
+  onGameResults?: (data: GameResultsEvent) => void;
+  onGameEnded?: (data: GameEndedEvent) => void;
+  onLobbyUpdate?: (data: LobbyUpdateEvent) => void;
+};
+
 export default function useGameStream({
   sessionId,
   onGameStarted,
@@ -52,7 +70,7 @@ export default function useGameStream({
     if (Number.isNaN(sessionId)) return;
 
     const es = new EventSource(
-      `http://localhost:8080/api/game/stream?sessionId=${sessionId}`
+      `http://163.192.206.210:8080/api/game/stream?sessionId=${sessionId}`
     );
 
     es.addEventListener("connected", (e: MessageEvent) => {
@@ -85,6 +103,8 @@ export default function useGameStream({
     es.onerror = (event) => {
       console.error("SSE connection error", event);
     };
+
+    // TODO: list of players
 
     return () => {
       es.close();

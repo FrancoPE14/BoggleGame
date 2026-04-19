@@ -46,7 +46,7 @@ export default function MultiplayerPage() {
 
     try {
       await fetch(
-        `http://localhost:8080/api/finish?sessionId=${sessionId}&username=${username}`,
+        `http://163.192.206.210:8080/api/finish?sessionId=${sessionId}&username=${username}`,
         { method: "POST" }
       );
     } catch (error) {
