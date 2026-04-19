@@ -100,7 +100,7 @@ export default function Timer({ onGameStart, onGameEnd }: TimerProps) {
                 )}
             </div>
 
-            {status === "ended" && <GameOver onPlayAgain={handleStart} />}
+            {status === "ended" && <GameOver onPlayAgain={handleStart} finalScores={[]} isMultiplayer={false} />}
         </>
     );
 }

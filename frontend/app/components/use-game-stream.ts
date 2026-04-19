@@ -2,9 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
+export type FinalScore = { username: string; score: number };
+
 export default function useGameStream() {
   const [connected, setConnected] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const [finalScores, setFinalScores] = useState<FinalScore[] | null>(null);
 
   useEffect(() => {
     const es = new EventSource("http://localhost:8080/api/game/stream");
@@ -18,6 +21,12 @@ export default function useGameStream() {
     es.addEventListener("test", (event) => {
       const data = JSON.parse((event as MessageEvent).data);
       console.log("TEST EVENT:", data);
+    });
+
+    es.addEventListener("round-ended", (event) => {
+        const data = JSON.parse((event as MessageEvent).data);
+        console.log("Round Ended:", data);
+        setFinalScores(data.finalScores);
     });
 
     es.onerror = () => {
@@ -36,5 +45,5 @@ export default function useGameStream() {
     };
   }, []);
 
-  return { connected };
+  return { connected, finalScores };
 }
