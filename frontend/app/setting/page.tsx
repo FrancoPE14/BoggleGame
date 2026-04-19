@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-// TODO:  update these when backend is done
 const DURATION_OPTIONS = [
     { label: "1 minute", value: 60 },
     { label: "2 minutes", value: 120 },
@@ -39,17 +38,6 @@ export default function SettingsPage() {
 
         const settings: GameSettings = { durationSeconds, boardSize };
 
-        // TODO: replace with real API call when backend is ready
-        // Example:
-        // const res = await fetch("/api/game/create", {
-        //   method: "POST",
-        //   headers: { "Content-Type": "application/json" },
-        //   body: JSON.stringify(settings),
-        // });
-        // const { gameId } = await res.json();
-        // router.push(`/game?id=${gameId}`);
-
-        // TODO: pass settings via query params until backend is ready
         router.push(
             `/game?duration=${durationSeconds}&boardSize=${boardSize}`
         );

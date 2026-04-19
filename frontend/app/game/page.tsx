@@ -12,6 +12,7 @@ import useWordVerification from "../components/use-word-verification";
 export default function Home() {
   const searchParams = useSearchParams();
   const duration = Number(searchParams.get("duration")) || 180;
+  const boardSize = Number(searchParams.get("boardSize")) || 5;
 
   const defaultBoard = [
     ["T", "E", "S", "T", "S"],
@@ -23,19 +24,20 @@ export default function Home() {
 
   const [finalScore, setFinalScore] = useState(0);
   const [gameActive, setGameActive] = useState(false);
-  const [board, setBoard] = useState(defaultBoard);
+  const [board, setBoard] = useState<string[][]>(() =>
+      Array(boardSize).fill(null).map(() => Array(boardSize).fill(""))
+  );
   const { submittedWords, verifyWord, resetWords, currentScore } =
     useWordVerification();
   const boggleBoardRef = useRef<BoggleBoardHandle>(null);
 
   function generateBoard() {
-    fetch("/api/generate")
-      .then((res) => res.json())
-      .then((b) => {
-        setBoard(b);
-        console.log(b);
-      })
-      .catch((error) => console.error("Error: ", error));
+    fetch(`/api/generate?size=${boardSize}`)
+        .then((res) => res.json())
+        .then((b) => {
+          setBoard(b);
+        })
+        .catch((error) => console.error("Error: ", error));
   }
 
   /**

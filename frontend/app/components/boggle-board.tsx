@@ -9,8 +9,6 @@ import React, {
 } from "react";
 import { SubmittedWord } from "./use-word-verification";
 
-const BOARD_SIZE = 5;
-
 type BoggleBoardProps = {
   submittedWords: SubmittedWord[];
   verifyWord: (word: string) => Promise<boolean>;
@@ -154,8 +152,8 @@ const BoggleBoard = forwardRef<BoggleBoardHandle, BoggleBoardProps>(
           style={{
             backgroundColor: "#333b47",
             padding: 10,
-            gridTemplateColumns: `repeat(${BOARD_SIZE}, minmax(0, 1fr))`,
-            gridTemplateRows: `repeat(${BOARD_SIZE}, minmax(0, 1fr))`,
+              gridTemplateColumns: `repeat(${board.length}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${board.length}, minmax(0, 1fr))`,
           }}
         >
           {board.map((rows, row) =>
