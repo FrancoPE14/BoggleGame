@@ -1,15 +1,14 @@
 services:
   # --- BACKEND VM TIER ---
   mysql:
-    image: mysql:8.0
+    image: boggle_sql:latest
     container_name: boggle_mysql
     profiles: ["api"]
     env_file: .env
     ports:
       - "3306:3306"
     volumes:
-      - ./db/mysql_data:/var/lib/mysql
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - mysql_data:/var/lib/mysql
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
@@ -40,6 +39,9 @@ services:
       - "3000:3000"
     restart: unless-stopped
     # No network defined; uses the default bridge to access the outside world
+
+volumes:
+  mysql_data:
 
 networks:
   backend-internal:
