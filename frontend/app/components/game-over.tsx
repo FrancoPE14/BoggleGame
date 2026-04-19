@@ -14,7 +14,7 @@ export default function GameOver({
     finalScores,
     isMultiplayer,
 }: GameOverProps) {
-    if (isMultiplayer) {
+    if (!isMultiplayer) {
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
                 <div className="w-90 rounded-xl border border-zinc-200 bg-white p-8 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import BoggleBoard, { BoggleBoardHandle } from "../../components/boggle-board";
 import WordInput from "../../components/word-input";
 import ScoreDisplay from "../../components/score-display";
@@ -10,18 +10,23 @@ import useWordVerification from "../../components/use-word-verification";
 import useGameStream, {
   GameStartedEvent,
   GameResultsEvent,
+  GameEndedEvent,
 } from "../../components/use-game-stream";
+import type { FinalScore } from "../../components/use-game-stream";
+import GameOver from "../../components/game-over";
 
 export default function MultiplayerPage() {
   const params = useSearchParams();
   const sessionId = Number(params.get("sessionId"));
   const username = params.get("username") || "user";
+  const router = useRouter();
 
   const [gameStarted, setGameStarted] = useState(false);
   const [roundEnded, setRoundEnded] = useState(false);
   const [board, setBoard] = useState<string[][] | null>(null);
   const [result, setResult] = useState<GameResultsEvent | null>(null);
   const [startSignal, setStartSignal] = useState(0);
+  const [finalScores, setFinalScores] = useState<FinalScore[] | null>(null);
 
   const { submittedWords, verifyWord, resetWords, currentScore } =
     useWordVerification({ sessionId, username });
@@ -54,6 +59,10 @@ export default function MultiplayerPage() {
     }
   }, [sessionId, username]);
 
+  const handleGameEnded = useCallback((data: GameEndedEvent) => {
+    setFinalScores(data.finalScores);
+  }, []);
+
   const handleGameResults = useCallback((data: GameResultsEvent) => {
     setResult(data);
   }, []);
@@ -63,6 +72,7 @@ export default function MultiplayerPage() {
     onGameStarted: handleGameStarted,
     onRoundEnded: handleRoundEnded,
     onGameResults: handleGameResults,
+    onGameEnded: handleGameEnded,
   });
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -133,6 +143,14 @@ export default function MultiplayerPage() {
               ))}
             </div>
           </div>
+        )}
+        {finalScores && (
+            <GameOver
+                onPlayAgain={() => router.push("/")}
+                finalScore={currentScore}
+                finalScores={finalScores}
+                isMultiplayer={true}
+            />
         )}
       </main>
     </div>
