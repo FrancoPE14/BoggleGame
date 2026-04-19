@@ -149,12 +149,6 @@ export default function MultiplayerPage() {
           </>
         )}
 
-        {roundEnded && !result && (
-          <div className="mt-6 text-xl font-semibold">
-            Waiting for results...
-          </div>
-        )}
-
         {finalScores && (
             <GameOver
                 onPlayAgain={() => router.push("/")}
@@ -162,12 +156,6 @@ export default function MultiplayerPage() {
                 finalScores={finalScores}
                 isMultiplayer={true}
             />
-        )}
-
-        {sessionEnded && (
-          <div className="mt-4 text-sm font-medium">
-            Session ended.
-          </div>
         )}
       </main>
     </div>
