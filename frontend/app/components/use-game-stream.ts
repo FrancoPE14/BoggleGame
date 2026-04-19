@@ -26,11 +26,18 @@ export type GameResultsEvent = {
   winner: string;
 };
 
-export type FinalScore = { username: string; score: number };
-
 export type GameEndedEvent = {
   sessionId: number;
-  finalScores: FinalScore[];
+};
+
+export type LobbyUpdateEvent = {
+  sessionId: number;
+  started: boolean;
+  playerCount: number;
+  maxPlayers: number;
+  hostUsername: string;
+  joinedUsername: string;
+  players?: string[];
 };
 
 type Props = {
@@ -39,6 +46,7 @@ type Props = {
   onGameState?: (data: GameStateEvent) => void;
   onGameResults?: (data: GameResultsEvent) => void;
   onGameEnded?: (data: GameEndedEvent) => void;
+  onLobbyUpdate?: (data: LobbyUpdateEvent) => void;
 };
 
 export default function useGameStream({
@@ -47,6 +55,7 @@ export default function useGameStream({
   onGameState,
   onGameResults,
   onGameEnded,
+  onLobbyUpdate,
 }: Props) {
   useEffect(() => {
     if (Number.isNaN(sessionId)) return;
@@ -67,6 +76,7 @@ export default function useGameStream({
 
     es.addEventListener("game-state", (e: MessageEvent) => {
       const data: GameStateEvent = JSON.parse(e.data);
+      console.log("game-state received:", data);
       onGameState?.(data);
     });
 
@@ -82,14 +92,25 @@ export default function useGameStream({
       onGameEnded?.(data);
     });
 
+    es.addEventListener("lobby-update", (e: MessageEvent) => {
+      const data: LobbyUpdateEvent = JSON.parse(e.data);
+      console.log("lobby-update received:", data);
+      onLobbyUpdate?.(data);
+    });
+
     es.onerror = (event) => {
       console.error("SSE connection error", event);
     };
 
-    // TODO: list of players
-
     return () => {
       es.close();
     };
-  }, [sessionId, onGameStarted, onGameState, onGameResults, onGameEnded]);
+  }, [
+    sessionId,
+    onGameStarted,
+    onGameState,
+    onGameResults,
+    onGameEnded,
+    onLobbyUpdate,
+  ]);
 }
