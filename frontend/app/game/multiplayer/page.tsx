@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import BoggleBoard, { BoggleBoardHandle } from "../../components/boggle-board";
 import WordInput from "../../components/word-input";
 import ScoreDisplay from "../../components/score-display";
+import MultiplayerTimer from "../../components/multiplayer-timer";
+import useWordVerification from "../../components/use-word-verification";
 import useGameStream, {
   GameStartedEvent,
   GameResultsEvent,
@@ -15,71 +17,32 @@ export default function MultiplayerPage() {
   const sessionId = Number(params.get("sessionId"));
   const username = params.get("username") || "user";
 
-  const defaultBoard = [
-    ["T", "E", "S", "T", "S"],
-    ["W", "O", "R", "D", "S"],
-    ["G", "A", "M", "E", "S"],
-    ["P", "L", "A", "Y", "S"],
-    ["B", "O", "G", "G", "L"],
-  ];
-
-  const [gameActive, setGameActive] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
   const [roundEnded, setRoundEnded] = useState(false);
-  const [board, setBoard] = useState<string[][]>(defaultBoard);
-  const [submittedWords, setSubmittedWords] = useState<string[]>([]);
-  const [currentScore, setCurrentScore] = useState(0);
+  const [board, setBoard] = useState<string[][] | null>(null);
   const [result, setResult] = useState<GameResultsEvent | null>(null);
+  const [startSignal, setStartSignal] = useState(0);
+
+  const { submittedWords, verifyWord, resetWords, currentScore } =
+    useWordVerification({ sessionId, username });
 
   const boggleBoardRef = useRef<BoggleBoardHandle>(null);
-
-  const resetRoundState = useCallback(() => {
-    setSubmittedWords([]);
-    setCurrentScore(0);
-    setResult(null);
-    setRoundEnded(false);
-  }, []);
-
-  const verifyWord = useCallback(
-    async (word: string) => {
-      if (!gameActive || roundEnded) {
-        return;
-      }
-
-      try {
-        const response = await fetch(
-          `http://localhost:8080/api/submit-word?sessionId=${sessionId}&username=${username}&word=${encodeURIComponent(word)}`,
-          { method: "POST" }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to submit word");
-        }
-
-        const data = await response.json();
-
-        setSubmittedWords(data.acceptedWords ?? []);
-        setCurrentScore(data.currentScore ?? 0);
-
-        return data;
-      } catch (error) {
-        console.error("Failed to submit multiplayer word", error);
-      }
-    },
-    [gameActive, roundEnded, sessionId, username]
-  );
 
   const handleGameStarted = useCallback(
     (data: GameStartedEvent) => {
       setBoard(data.board);
-      resetRoundState();
-      setGameActive(true);
+      setGameStarted(true);
+      setRoundEnded(false);
+      setResult(null);
+      setStartSignal((prev) => prev + 1);
+      resetWords();
     },
-    [resetRoundState]
+    [resetWords]
   );
 
   const handleRoundEnded = useCallback(async () => {
     setRoundEnded(true);
-    setGameActive(false);
+    setGameStarted(false);
 
     try {
       await fetch(
@@ -117,20 +80,48 @@ export default function MultiplayerPage() {
       onMouseUp={handleMouseUp}
     >
       <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center justify-center bg-amber-100 px-16 py-32 dark:bg-amber-100">
-        {!gameActive && !roundEnded && !result && (
-          <div className="mb-6 text-xl font-semibold">
+        {gameStarted && (
+          <MultiplayerTimer
+            gameStarted={gameStarted}
+            roundEnded={roundEnded}
+            startSignal={startSignal}
+          />
+        )}
+
+        {!board && (
+          <div className="mt-6 text-xl font-semibold">
             Waiting for game to start...
           </div>
         )}
 
+        {board && (
+          <BoggleBoard
+            ref={boggleBoardRef}
+            submittedWords={submittedWords}
+            verifyWord={verifyWord}
+            gameActive={gameStarted}
+            board={board}
+          />
+        )}
+
+        {board && gameStarted && (
+          <>
+            <WordInput submittedWords={submittedWords} />
+            <ScoreDisplay
+              submittedWords={submittedWords}
+              currentScore={currentScore}
+            />
+          </>
+        )}
+
         {roundEnded && !result && (
-          <div className="mb-6 text-xl font-semibold">
+          <div className="mt-6 text-xl font-semibold">
             Waiting for results...
           </div>
         )}
 
         {result && (
-          <div className="mb-6 flex flex-col items-center gap-2">
+          <div className="mt-6 flex flex-col items-center gap-2">
             <div className="text-2xl font-bold">
               Winner: {result.winner}
             </div>
@@ -142,24 +133,6 @@ export default function MultiplayerPage() {
               ))}
             </div>
           </div>
-        )}
-
-        <BoggleBoard
-          ref={boggleBoardRef}
-          submittedWords={submittedWords}
-          verifyWord={verifyWord}
-          gameActive={gameActive}
-          board={board}
-        />
-
-        {gameActive && (
-          <>
-            <WordInput submittedWords={submittedWords} />
-            <ScoreDisplay
-              submittedWords={submittedWords}
-              currentScore={currentScore}
-            />
-          </>
         )}
       </main>
     </div>
