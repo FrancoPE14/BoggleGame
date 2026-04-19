@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useState, useCallback, useRef } from "react";
 import BoggleBoard, { BoggleBoardHandle } from "../components/boggle-board";
 import WordInput from "../components/word-input";
@@ -9,6 +10,9 @@ import Timer from "../components/timer";
 import useWordVerification from "../components/use-word-verification";
 
 export default function Home() {
+  const searchParams = useSearchParams();
+  const duration = Number(searchParams.get("duration")) || 180;
+
   const defaultBoard = [
     ["T", "E", "S", "T", "S"],
     ["W", "O", "R", "D", "S"],
@@ -78,7 +82,12 @@ export default function Home() {
       onMouseUp={handleMouseUp}
     >
       <main className="flex min-h-screen w-full max-w-3xl mx-auto flex-col items-center justify-center py-32 px-16 bg-amber-100 dark:bg-amber-100">
-        <Timer onGameStart={handleGameStart} onGameEnd={handleGameEnd} finalScore={finalScore} />
+        <Timer
+            onGameStart={handleGameStart}
+            onGameEnd={handleGameEnd}
+            finalScore={finalScore}
+            durationSeconds={duration}
+        />
 
         <BoggleBoard
           ref={boggleBoardRef}

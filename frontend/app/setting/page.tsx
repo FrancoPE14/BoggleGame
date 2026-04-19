@@ -26,7 +26,7 @@ export default function SettingsPage() {
     const router = useRouter();
 
     const [durationSeconds, setDurationSeconds] = useState<number>(180);
-    const [boardSize, setBoardSize] = useState<number>(4);
+    const [boardSize, setBoardSize] = useState<number>(5);
     const [error, setError] = useState<string | null>(null);
 
     const handleStartGame = async () => {
@@ -69,17 +69,17 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="container py-5">
+        <div className="min-h-screen w-full bg-amber-100 flex flex-col py-5">
             <div
                 className="shadow-lg mx-auto"
                 style={{
                     maxWidth: "540px",
-                    backgroundColor: "#ffffff",
+                    backgroundColor: "#fffbeb",
                     borderRadius: "16px",
                     padding: "2rem",
                 }}
             >
-                <h1 className="text-center mb-1" style={{ color: "#5a4a00" }}>
+                <h1 className="text-center mb-1" style={{color: "#5a4a00"}}>
                     Game Settings
                 </h1>
                 <p className="text-center text-muted mb-4">
@@ -88,10 +88,10 @@ export default function SettingsPage() {
 
                 {/* Game Duration */}
                 <div className="mb-4">
-                    <label className="form-label fw-semibold" style={{ color: "#5a4a00" }}>
+                    <label className="form-label fw-semibold" style={{color: "#5a4a00"}}>
                         Game Duration
                     </label>
-                    <div className="pb-2" style={{ borderBottom: "2px solid #f3e7b3" }} />
+                    <div className="pb-2" style={{borderBottom: "2px solid #f3e7b3"}}/>
                     <div className="d-flex flex-wrap gap-2 mt-3">
                         {DURATION_OPTIONS.map((opt) => (
                             <button
@@ -106,16 +106,16 @@ export default function SettingsPage() {
                         ))}
                     </div>
                     <div className="form-text mt-2">
-                        Selected: <strong style={{ color: "#5a4a00" }}>{durationSeconds} seconds</strong>
+                        Selected: <strong style={{color: "#5a4a00"}}>{durationSeconds} seconds</strong>
                     </div>
                 </div>
 
                 {/* Board Size */}
                 <div className="mb-4">
-                    <label className="form-label fw-semibold" style={{ color: "#5a4a00" }}>
+                    <label className="form-label fw-semibold" style={{color: "#5a4a00"}}>
                         Board Size
                     </label>
-                    <div className="pb-2" style={{ borderBottom: "2px solid #f3e7b3" }} />
+                    <div className="pb-2" style={{borderBottom: "2px solid #f3e7b3"}}/>
                     <div className="d-flex flex-wrap gap-2 mt-3">
                         {BOARD_SIZE_OPTIONS.map((opt) => (
                             <button
@@ -130,7 +130,7 @@ export default function SettingsPage() {
                         ))}
                     </div>
                     <div className="form-text mt-2">
-                        Selected: <strong style={{ color: "#5a4a00" }}>{boardSize}×{boardSize} grid</strong>
+                        Selected: <strong style={{color: "#5a4a00"}}>{boardSize}×{boardSize} grid</strong>
                     </div>
                 </div>
 
@@ -153,7 +153,7 @@ export default function SettingsPage() {
                 </button>
 
                 <div className="text-center mt-3">
-                    <Link href="/" style={{ color: "#5a4a00", textDecoration: "none", fontWeight: 500 }}>
+                    <Link href="/" style={{color: "#5a4a00", textDecoration: "none", fontWeight: 500}}>
                         ← Back to Menu
                     </Link>
                 </div>
