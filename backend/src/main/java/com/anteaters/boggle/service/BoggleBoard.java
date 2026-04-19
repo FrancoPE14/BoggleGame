@@ -6,15 +6,64 @@ import java.util.Random;
 
 public class BoggleBoard {
 
-    int boardSize = 5; // static size for now; resizable boards later as enhancement
-    Dice[][] grid = new Dice[boardSize][boardSize];
+    int boardSize;
+    Dice[][] grid;
     LinkedList<Dice> currentEntry = new LinkedList<>(); // stores the user's current entry as a list of dice
-    
     LinkedList<Dice> dicePool = new LinkedList<Dice>();
 
 
+    /**
+     * Constructor. Creates a boggle board of the given size. Currently, restrictions require board
+     * to be within 3 - 10 in dimension.
+     * 
+     * @param size the desired size of the boggle board
+     */
+    public BoggleBoard(int size){
+        if(size < 3){
+            boardSize = 3;
+        } else if (size > 10){
+            boardSize = 10;
+        } else {
+            boardSize = size;
+        }
+        grid = new Dice[boardSize][boardSize];
+        populateBoard();
+    }
 
-    public BoggleBoard() {
+    /**
+     * Default constructor. Creates the standard 5x5 boggle board.
+     */
+    public BoggleBoard(){
+        boardSize = 5;
+        grid = new Dice[5][5];
+        populateBoard();
+
+    }
+
+    private void populateBoard(){
+        generateDice();
+        for (int i = 0; i < boardSize; i++){
+            for (int j = 0; j < boardSize; j++){
+                Random rand = new Random();
+                int randomIndex = rand.nextInt(dicePool.size());
+                grid[i][j] = dicePool.remove(randomIndex);
+                grid[i][j].setCoordinates(i, j);
+
+                if(dicePool.isEmpty()){
+                    generateDice();
+                }
+            }
+        }
+        dicePool.clear();
+    }
+
+
+    /**
+     * Internal method to generate dice. Creates 25 unique dice, drawn
+     * from the official 5x5 Boggle Dice pool. Dice are added to the
+     * dicePool object.
+     */
+    private void generateDice(){
         //region Canonical Boggle Dice
         dicePool.add(new Dice(List.of("A","A","A","F","R","S")));
         dicePool.add(new Dice(List.of("A","A","E","E","E","E")));
@@ -46,17 +95,7 @@ public class BoggleBoard {
         dicePool.add(new Dice(List.of("N","O","O","T","U","W")));
         dicePool.add(new Dice(List.of("O","O","O","T","T","U")));
         //endregion
-
-        for (int i = 0; i < boardSize; i++){
-            for (int j = 0; j < boardSize; j++){
-                Random rand = new Random();
-                int randomIndex = rand.nextInt(dicePool.size());
-                grid[i][j] = dicePool.remove(randomIndex);
-                grid[i][j].setCoordinates(i, j);
-            }
-        }
     }
-
     /**
      * Method to append a die to the current entry.
      * Includes logic to ensure the new die is valid: a check for its position and a check to make sure
