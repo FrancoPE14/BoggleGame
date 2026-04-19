@@ -4,8 +4,8 @@ import Link from "next/link";
 interface GameOverProps {
     onPlayAgain: () => void;
     finalScore: number;
-    finalScores: FinalScore[];
-    isMultiplayer: boolean;
+    finalScores?: FinalScore[];
+    isMultiplayer?: boolean;
 }
 
 export default function GameOver({
@@ -28,7 +28,7 @@ export default function GameOver({
                         Ranking:
                     </h5>
                     <ol>
-                        {finalScores.map((entry, index) => (
+                        {finalScores && finalScores.map((entry, index) => (
                             <li key={entry.username}>
                                 {index + 1}. {entry.username} - {entry.score}
                             </li>
