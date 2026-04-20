@@ -52,7 +52,7 @@ export default function useGameStream({
     if (Number.isNaN(sessionId)) return;
 
     const es = new EventSource(
-      `http://localhost:8080/api/game/stream?sessionId=${sessionId}`
+      `http://163.192.206.210:8080/api/game/stream?sessionId=${sessionId}`
     );
 
     es.addEventListener("connected", (e: MessageEvent) => {
