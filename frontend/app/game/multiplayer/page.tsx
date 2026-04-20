@@ -60,23 +60,6 @@ export default function MultiplayerPage() {
   const [sessionEnded, setSessionEnded] = useState(false);
 
   /**
-   * Builds the initial mock player list for the lobby.
-   * Reads the current user's name from sessionStorage.
-   *
-   * @returns The initial array of lobby players.
-   */
-  function buildInitialPlayers(): LobbyPlayer[] {
-    const username =
-      typeof window !== "undefined"
-        ? window.sessionStorage.getItem("username")?.trim() || "You"
-        : "You";
-
-    // TODO: Replace mock player data with real lobby state from backend.
-    // Depends on backend issues #179 (lobby endpoints) and #166 (multiplayer support).
-    return [{ username, isCurrentUser: true }];
-  }
-
-  /**
    * Multiplayer pages must submit words through /api/submit-word so the backend
    * can update ScoreTracker and return the correct currentScore value.
    */
@@ -84,7 +67,9 @@ export default function MultiplayerPage() {
     useMultiplayerWordSubmission(sessionId, username);
 
   const boggleBoardRef = useRef<BoggleBoardHandle>(null);
-  const [players, setPlayers] = useState<LobbyPlayer[]>(buildInitialPlayers);
+  const [players, setPlayers] = useState<LobbyPlayer[]>([
+    { username, isCurrentUser: true },
+  ]);
   const [hostUsername, setHostUsername] = useState("");
 
   useEffect(() => {
@@ -117,7 +102,7 @@ export default function MultiplayerPage() {
 
   const onStartButtonClicked = () => {
     fetch(
-      `/api/start?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
+      `http://163.192.206.210:8080/api/start?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
       { method: "POST" },
     ).catch((err) => console.error(err));
   };
@@ -127,10 +112,9 @@ export default function MultiplayerPage() {
 
   const handleLobbyUpdate = useCallback((data: LobbyUpdateEvent) => {
     console.log("Lobby Updated:", data);
-    const currentUsername = window.sessionStorage.getItem("username")?.trim();
-    const playerList: LobbyPlayer[] = data.playerList.map((username) => ({
-      username,
-      isCurrentUser: currentUsername === data.hostUsername,
+    const playerList: LobbyPlayer[] = data.playerList.map((user) => ({
+      user,
+      isCurrentUser: user === hostUsername,
     }));
     setPlayers(playerList);
   }, []);
