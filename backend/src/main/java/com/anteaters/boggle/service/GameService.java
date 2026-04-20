@@ -150,6 +150,7 @@ public class GameService {
         session.addPlayer(player);
 
         SessionSummary summary = session.toSummary();
+        List<String> playerList = session.getPlayerUsernames(); // extract all usernames in session
 
         gameEventService.broadcastToSession(
                 String.valueOf(sessionId),
@@ -160,7 +161,8 @@ public class GameService {
                         "playerCount", summary.playerCount(),
                         "maxPlayers", summary.maxPlayers(),
                         "hostUsername", summary.hostUsername(),
-                        "joinedUsername", username
+                        "joinedUsername", username,
+                        "playerList", playerList
                 )
         );
 
