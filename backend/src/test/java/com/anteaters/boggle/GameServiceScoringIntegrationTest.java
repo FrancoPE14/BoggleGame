@@ -64,7 +64,7 @@ public class GameServiceScoringIntegrationTest {
                 new ScoreCalculator()
         );
 
-        repo = mock(UserRepository.class);
+        repo = new FakeUserRepository();
         userRegulation = mock(UserRegulationService.class);
 
         GameSession.resetIdCnt();
@@ -86,6 +86,7 @@ public class GameServiceScoringIntegrationTest {
 
         when(user.getUsername()).thenReturn("user");
         when(userRegulation.getUser("user")).thenReturn(user);
+        repo.save(user);
 
         gameService.addPlayer(sessionId, "user");
         gameService.startGame(sessionId, "user");
@@ -118,6 +119,7 @@ public class GameServiceScoringIntegrationTest {
 
         when(user.getUsername()).thenReturn("user");
         when(userRegulation.getUser("user")).thenReturn(user);
+        repo.save(user);
 
         assertDoesNotThrow(() -> gameService.addPlayer(sessionId, "user"));
         assertNotNull(gameService.startGame(sessionId, "user"));

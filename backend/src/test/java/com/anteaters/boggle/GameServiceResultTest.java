@@ -30,7 +30,7 @@ public class GameServiceResultTest {
 
     @BeforeEach
     void setUp() {
-        repo = mock(UserRepository.class);
+        repo = new FakeUserRepository();
         userRegulation = mock(UserRegulationService.class);
         submissionService = mock(WordSubmissionService.class);
         gameEventService = mock(GameEventService.class);
@@ -74,6 +74,7 @@ public class GameServiceResultTest {
         User user = mock(User.class);
         when(user.getUsername()).thenReturn("alice");
         when(userRegulation.getUser("alice")).thenReturn(user);
+        repo.save(user);
 
         int sessionId = 0;
 
@@ -106,6 +107,9 @@ public class GameServiceResultTest {
 
         when(userRegulation.getUser("alice")).thenReturn(user1);
         when(userRegulation.getUser("bob")).thenReturn(user2);
+
+        repo.save(user1);
+        repo.save(user2);
 
         int sessionId = 0;
 

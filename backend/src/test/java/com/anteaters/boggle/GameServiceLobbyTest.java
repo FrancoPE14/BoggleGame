@@ -30,7 +30,7 @@ public class GameServiceLobbyTest {
     void setUp() {
         GameSession.resetIdCnt();
 
-        repo = mock(UserRepository.class);
+        repo = new FakeUserRepository();
         userRegulation = mock(UserRegulationService.class);
         wordSubmissionService = mock(WordSubmissionService.class);
         gameEventService = mock(GameEventService.class);
@@ -43,7 +43,9 @@ public class GameServiceLobbyTest {
      * receives a stable username value and does not fail due to missing state.
      */
     private User realUser(String username) {
-        return new User(username, "password");
+        User user = new User(username, "password");
+        repo.save(user);
+        return user;
     }
 
     @Test
