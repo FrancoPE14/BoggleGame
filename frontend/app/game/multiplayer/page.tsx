@@ -88,15 +88,23 @@ export default function MultiplayerPage() {
   const [hostUsername, setHostUsername] = useState("");
 
   useEffect(() => {
-    fetch("/api/sessions")
+    fetch(`/api/session/players?sessionId=${sessionId}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load session.");
         return res.json();
       })
       .then((data) => {
         console.log(data);
-        console.log(data[sessionId].hostUsername);
-        setHostUsername(data[sessionId].hostUsername);
+        setHostUsername(data.hostUsername);
+
+        const currentUsername = window.sessionStorage
+          .getItem("username")
+          ?.trim();
+        const playerList: LobbyPlayer[] = data.playerList.map((u: string) => ({
+          username: u,
+          isCurrentUser: u === currentUsername,
+        }));
+        setPlayers(playerList);
       })
       .catch(() => {
         console.error("Could not load session. Please try again later.");
