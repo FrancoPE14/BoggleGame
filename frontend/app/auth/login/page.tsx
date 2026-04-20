@@ -1,6 +1,6 @@
 "use client";
 
-import { SubmitEvent, useContext, useRef } from "react";
+import { SubmitEvent, useContext, useRef, useState } from "react";
 import { Form, Button, Container, Row, Col, Card } from "react-bootstrap";
 import LoginStatusContext from "../../components/context/loginStatusContext";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ export default function Login() {
   // Keep inputs uncontrolled and read current values only when the form submits.
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string>("");
 
   const router = useRouter();
 
@@ -21,7 +22,7 @@ export default function Login() {
 
     //Check if valuyes are missing
     if (!username || !password) {
-      alert("You must provide both a username and password!");
+      setError("You must provide both a username and password!");
       return;
     }
 
@@ -36,12 +37,11 @@ export default function Login() {
         if (res.status === 200) {
           return res.json();
         } else {
-          alert("Something went wrong! :/");
+          setError("Please enter the correct username and password");
         }
       })
       .then((data) => {
         if (data.status === true) {
-          alert("You have been successfully logged in!");
           // Persist auth status so refreshes keep the client-side login context in sync.
           window.sessionStorage.setItem("loginStatus", JSON.stringify(true));
           // store for profile page
@@ -50,8 +50,9 @@ export default function Login() {
 
           router.push("/");
           router.replace("/");
+          setError("")
         } else {
-          alert("Something went wrong! :/");
+          setError("Please enter the correct username and password");
         }
       });
   }
@@ -67,7 +68,11 @@ export default function Login() {
                 <p className="text-muted mb-4">
                   Welcome back. Sign in to continue.
                 </p>
-
+                {error.length > 0 && (
+                    <p style={{ color: "red" }} className="mb-4">
+                        {error}
+                    </p>
+                )}
                 <Form onSubmit={onLogin}>
                   <Form.Group className="mb-3">
                     <Form.Label htmlFor="usernameInput">Username</Form.Label>
