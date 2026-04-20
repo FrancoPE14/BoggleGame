@@ -88,7 +88,11 @@ export default function MultiplayerPage() {
   const [hostUsername, setHostUsername] = useState("");
 
   useEffect(() => {
-    fetch(`/api/session/players?sessionId=${sessionId}`)
+    if (isNaN(sessionId)) return;
+
+    fetch(`/api/session/players?sessionId=${sessionId}`, {
+      method: "GET",
+    })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load session.");
         return res.json();
@@ -109,7 +113,7 @@ export default function MultiplayerPage() {
       .catch(() => {
         console.error("Could not load session. Please try again later.");
       });
-  }, []);
+  }, [sessionId]);
 
   const onStartButtonClicked = () => {
     fetch(

@@ -179,8 +179,8 @@ public class GameController{
      * @return session id of the game the player is in, else -1
      */
     @GetMapping("/api/session/players")
-    public Map<String, Object> getPlayers(@RequestParam int id) {
-        GameSession session = service.getSession(id);
+    public Map<String, Object> getPlayers(@RequestParam int sessionId) {
+        GameSession session = service.getSession(sessionId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("hostUsername", session.getHostUsername());
