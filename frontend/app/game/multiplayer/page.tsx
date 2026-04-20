@@ -233,10 +233,10 @@ export default function MultiplayerPage() {
 
         {/*Before game start*/}
         {!board && (
-          <div className="mt-6 text-xl font-semibold">
-            Waiting for game to start...
+          <div className="mt-6 text-xl font-semibold flex flex-col items-center">
+            <h2>Waiting for game to start...</h2>
             {/* Player list */}
-            <div className="w-full max-w-2xl bg-white rounded-2xl border border-amber-200 shadow-sm p-6 mb-6">
+            <div className="w-full max-w-2xl bg-amber-50 rounded-2xl border border-amber-200 shadow-sm p-6 mb-6 items-center">
               <PlayerList players={players} />
             </div>
             {/*Start Button*/}
