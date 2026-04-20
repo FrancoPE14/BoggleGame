@@ -50,7 +50,7 @@ export default function Page() {
                 className="shadow-lg mx-auto"
                 style={{
                     maxWidth: "600px",
-                    backgroundColor: "#fffbeb",
+                    backgroundColor: "#ffffff",
                     borderRadius: "16px",
                     padding: "2rem",
                 }}

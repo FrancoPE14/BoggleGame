@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useState, useCallback, useRef } from "react";
+import {useState, useCallback, useRef, useEffect} from "react";
 import BoggleBoard, { BoggleBoardHandle } from "../components/boggle-board";
 import WordInput from "../components/word-input";
 import ScoreDisplay from "../components/score-display";
@@ -29,6 +29,13 @@ export default function Home() {
     useWordVerification();
   const boggleBoardRef = useRef<BoggleBoardHandle>(null);
 
+  const currentScoreRef = useRef(0);
+
+  // Keep ref in sync whenever currentScore changes
+  useEffect(() => {
+    currentScoreRef.current = currentScore;
+  }, [currentScore]);
+
   function generateBoard() {
     console.log("generating board with size:", boardSize);
     fetch(`/api/generate?size=${boardSize}`)
@@ -46,19 +53,20 @@ export default function Home() {
    */
   const handleGameEnd = useCallback(() => {
     setGameActive(false);
-    console.log("handleGameEnd fired, currentScore:", currentScore);
-    setFinalScore(currentScore); // capture before resetWords clears it
+    const score = currentScoreRef.current; // always fresh
+    console.log("handleGameEnd fired, score:", score);
+    setFinalScore(score);
 
     const username = window.sessionStorage.getItem("username");
     if (username) {
       fetch(
-          `/api/user/score?username=${encodeURIComponent(username)}&score=${currentScore}`,
+          `/api/user/score?username=${encodeURIComponent(username)}&score=${score}`,
           { method: "PUT" },
       ).catch((err) => console.error("Score submit failed:", err));
     }
 
     resetWords();
-  }, [resetWords, currentScore]);
+  }, [resetWords]);
 
   /**
    * Called on initial mount and when the player clicks Play Again.

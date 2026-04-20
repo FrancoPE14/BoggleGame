@@ -69,7 +69,7 @@ public class GameService {
      * @param username username to search for
      * @return a non-negative session id, or -1 if the user is not assigned to any session
      */
-    private int getSessionId(String username){
+    public int getSessionId(String username){
         for(Map.Entry<Integer, GameSession> e : sessions.entrySet()){
             if(e.getValue().isPlayerAdded(username)){
                 return e.getKey();

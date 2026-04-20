@@ -2,6 +2,7 @@
 
 import LobbyCard from "./components/lobby-card";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface Lobby {
   sessionId: number;
@@ -13,6 +14,7 @@ interface Lobby {
 
 export default function LobbyPage() {
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     fetch("/api/sessions")
@@ -30,8 +32,37 @@ export default function LobbyPage() {
   }, []);
 
   function enterLobby(sessionId: number) {
-    // enter specifc game lobby based on id
     console.log("Enter: " + sessionId);
+
+    const username = window.sessionStorage.getItem("username");
+
+    if (!username) {
+      console.error("No username found in sessionStorage");
+      return;
+    }
+
+    fetch(
+      `/api/join?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
+      {
+        method: "POST",
+      },
+    )
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Failed to join lobby: ${res.status} ${text}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Joined lobby:", data);
+        router.push(
+          `/game/multiplayer?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
+        );
+      })
+      .catch((err) => {
+        console.error("Error joining lobby:", err);
+      });
   }
 
   return (

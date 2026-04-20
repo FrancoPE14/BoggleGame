@@ -1,3 +1,5 @@
+"use client"
+
 import type { FinalScore } from "./use-game-stream";
 import Link from "next/link";
 
