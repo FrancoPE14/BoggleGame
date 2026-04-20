@@ -1,6 +1,6 @@
 "use client";
 
-import { SubmitEvent, useContext, useRef } from "react";
+import { SubmitEvent, useContext, useRef, useState } from "react";
 import { Form, Button, Container, Row, Col, Card } from "react-bootstrap";
 import LoginStatusContext from "../../components/context/loginStatusContext";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,8 @@ export default function Register() {
   // Keep inputs uncontrolled and read current values only when the form submits.
   const usernameRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string>("");
+  
 
   const router = useRouter();
 
@@ -23,7 +25,7 @@ export default function Register() {
 
     // Short-circuit before calling the API when required credentials are missing.
     if (!username || !password?.trim()) {
-      alert("You must provide both a username and password!");
+      setError("You must provide both a username and password!");
       return;
     }
 
@@ -38,12 +40,11 @@ export default function Register() {
         if (res.status === 200) {
           return res.json();
         } else {
-          alert("Something went wrong! :/");
+            setError("User already exists");
         }
       })
       .then((data) => {
         if (data.status === true) {
-          alert("You have been successfully registered!");
           // Immediately mark the user as logged in after successful registration.
           setLoginStatus(true);
           // Persist auth status so refreshes keep the client-side login context in sync.
@@ -52,8 +53,9 @@ export default function Register() {
           window.sessionStorage.setItem("username", username);
           router.push("/");
           router.replace("/");
+          setError("")
         } else {
-          alert("Something went wrong! :/");
+            setError("User already exists");
         }
       });
   }
@@ -67,7 +69,11 @@ export default function Register() {
               <Card.Body className="p-4 p-md-5">
                 <h1 className="h3 mb-1">Register</h1>
                 <p className="text-muted mb-4">Create a new account.</p>
-
+                {error.length > 0 && (
+                    <p style={{ color: "red" }} className="mb-4">
+                        {error}
+                    </p>
+                )}
                 <Form onSubmit={onRegister}>
                   <Form.Group className="mb-3">
                     <Form.Label htmlFor="usernameInput">Username</Form.Label>
