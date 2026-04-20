@@ -31,11 +31,14 @@ public class UserProfileController {
         if (!userService.isLoggedIn(username)) {
             return ResponseEntity.status(401).body(Map.of("error", "Not logged in"));
         }
-        User user = userService.getUser(username);
+        // fetch fresh from DB instead of the stale in-memory object
+        User user = userRepository.findById(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+        }
         String picture = user.getProfilePicture() != null ? user.getProfilePicture() : "";
         return ResponseEntity.ok(Map.of(
                 "username", user.getUsername(),
-                "matchesWon", user.getMatchesWon(),
                 "highScore", user.getHighScore(),
                 "profilePicture", picture
         ));
