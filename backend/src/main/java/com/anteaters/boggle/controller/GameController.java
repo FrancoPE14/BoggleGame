@@ -14,6 +14,8 @@ import com.anteaters.boggle.model.SessionSummary;
 import com.anteaters.boggle.model.WordSubmissionResult;
 import com.anteaters.boggle.service.BoggleBoard;
 import com.anteaters.boggle.service.GameService;
+import com.anteaters.boggle.service.GameSession;
+
 
 /**
  * REST controller for multiplayer game operations.
@@ -167,7 +169,7 @@ public class GameController{
 
     
     /**
-     * Returns the session id that a given username (player) is in
+     * Returns the hostUsername and list of usernames given sessionid
      *
      * Usage example: GET /api/session
      *
@@ -176,8 +178,14 @@ public class GameController{
      *
      * @return session id of the game the player is in, else -1
      */
-    @GetMapping("/api/session")
-    public int getSessions(@RequestParam String username) {
-        return service.getSessionId(username);
+    @GetMapping("/api/session/players")
+    public Map<String, Object> getPlayers(@RequestParam int sessionId) {
+        GameSession session = service.getSession(sessionId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("hostUsername", session.getHostUsername());
+        response.put("playerList", session.getPlayerUsernames());
+
+        return response;
     }
 }

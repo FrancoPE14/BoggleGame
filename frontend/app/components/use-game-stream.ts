@@ -38,6 +38,7 @@ export type LobbyUpdateEvent = {
   hostUsername: string;
   joinedUsername: string;
   players?: string[];
+  playerList?: string[];
 };
 
 type Props = {

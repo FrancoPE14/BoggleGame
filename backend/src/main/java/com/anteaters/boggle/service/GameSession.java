@@ -3,6 +3,7 @@ package com.anteaters.boggle.service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -100,7 +101,7 @@ public class GameSession{
         this.gameEventService = gameEventService;
 
         // timer related
-        duration = 10; // TODO: hard-coded for now, change for future implementation of settings
+        duration = 180; // TODO: hard-coded for now, change for future implementation of settings
     }
 
     /**
@@ -110,6 +111,23 @@ public class GameSession{
      */
     public int getId(){
         return sessionId;
+    }
+
+    /**
+     * Returns the usernames of all players currently in this session.
+     *
+     * @return list of player usernames in join order
+     */
+    public List<String> getPlayerUsernames() {
+        List<String> usernames = new ArrayList<>();
+
+        for (Player player : players) {
+            if (player != null) {
+                usernames.add(player.getUsername());
+            }
+        }
+
+        return usernames;
     }
 
     /**

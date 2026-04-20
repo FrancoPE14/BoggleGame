@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import BoggleBoard, { BoggleBoardHandle } from "../../components/boggle-board";
 import WordInput from "../../components/word-input";
@@ -13,8 +13,28 @@ import useGameStream, {
   GameStateEvent,
   GameEndedEvent,
 } from "../../components/use-game-stream";
-import type { FinalScore } from "../../components/use-game-stream";
+import type {
+  FinalScore,
+  LobbyUpdateEvent,
+} from "../../components/use-game-stream";
 import GameOver from "../../components/game-over";
+import PlayerList from "../../components/player-list";
+
+/**
+ * Represents a single player in the lobby.
+ */
+type LobbyPlayer = {
+  username: string;
+  isCurrentUser: boolean;
+};
+
+interface Lobby {
+  sessionId: number;
+  started: boolean;
+  playerCount: number;
+  maxPlayers: number;
+  hostUsername: string;
+}
 
 /**
  * Multiplayer gameplay page.
@@ -47,6 +67,57 @@ export default function MultiplayerPage() {
     useMultiplayerWordSubmission(sessionId, username);
 
   const boggleBoardRef = useRef<BoggleBoardHandle>(null);
+  const [players, setPlayers] = useState<LobbyPlayer[]>([
+    { username, isCurrentUser: true },
+  ]);
+  const [hostUsername, setHostUsername] = useState("");
+
+  useEffect(() => {
+    if (isNaN(sessionId)) return;
+
+    fetch(`/api/session/players?sessionId=${sessionId}`, {
+      method: "GET",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load session.");
+        return res.json();
+      })
+      .then((data) => {
+        console.log(data);
+        setHostUsername(data.hostUsername);
+
+        const currentUsername = window.sessionStorage
+          .getItem("username")
+          ?.trim();
+        const playerList: LobbyPlayer[] = data.playerList.map((u: string) => ({
+          username: u,
+          isCurrentUser: u === currentUsername,
+        }));
+        setPlayers(playerList);
+      })
+      .catch(() => {
+        console.error("Could not load session. Please try again later.");
+      });
+  }, [sessionId]);
+
+  const onStartButtonClicked = () => {
+    fetch(
+      `http://163.192.206.210:8080/api/start?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
+      { method: "POST" },
+    ).catch((err) => console.error(err));
+  };
+
+  // TODO: Leave button
+  const onLeaveButtonClicked = () => {};
+
+  const handleLobbyUpdate = useCallback((data: LobbyUpdateEvent) => {
+    console.log("Lobby Updated:", data);
+    const playerList: LobbyPlayer[] = data.playerList.map((user) => ({
+      username: user,
+      isCurrentUser: user === username,
+    }));
+    setPlayers(playerList);
+  }, []);
 
   /**
    * Initializes local UI state when the server broadcasts the start of a new game.
@@ -126,6 +197,7 @@ export default function MultiplayerPage() {
     onGameState: handleGameState,
     onGameResults: handleGameResults,
     onGameEnded: handleGameEnded,
+    onLobbyUpdate: handleLobbyUpdate,
   });
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -159,9 +231,26 @@ export default function MultiplayerPage() {
           />
         )}
 
+        {/*Before game start*/}
         {!board && (
-          <div className="mt-6 text-xl font-semibold">
-            Waiting for game to start...
+          <div className="mt-6 text-xl font-semibold flex flex-col items-center">
+            <h2>Waiting for game to start...</h2>
+            {/* Player list */}
+            <div className="w-full max-w-2xl bg-amber-50 rounded-2xl border border-amber-200 shadow-sm p-6 mb-6 items-center">
+              <PlayerList players={players} />
+            </div>
+            {/*Start Button*/}
+            {hostUsername === username && (
+              <button
+                type="button"
+                onClick={onStartButtonClicked}
+                //disabled={!canStart}
+                className="px-8 py-3 rounded-xl bg-amber-500 text-white font-bold text-lg shadow-md hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Start the multiplayer game"
+              >
+                Start Game
+              </button>
+            )}
           </div>
         )}
 
