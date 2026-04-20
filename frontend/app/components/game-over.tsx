@@ -17,7 +17,8 @@ export default function GameOver({
     if (isMultiplayer) {
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                <div className="w-90 rounded-xl border border-zinc-200 bg-white p-8 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+                <div
+                    className="w-90 rounded-xl border border-zinc-200 bg-white p-8 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
                     <h2 className="mb-2 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
                         Time&apos;s up!
                         {finalScores && finalScores.length > 0 && (
@@ -49,7 +50,8 @@ export default function GameOver({
     } else {
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                <div className="w-90 rounded-xl border border-zinc-200 bg-white p-8 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
+                <div
+                    className="w-90 rounded-xl border border-zinc-200 bg-white p-8 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
                     <h2 className="mb-2 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
                         Time&apos;s up!
                     </h2>
@@ -68,6 +70,12 @@ export default function GameOver({
                         className="w-full mt-2 rounded-md px-4 py-2 text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
                     >
                         Change Settings
+                    </button>
+                    <button
+                        onClick={() => window.location.href = "/"}
+                        className="w-full mt-2 rounded-md px-4 py-2 text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                    >
+                        Back to Menu
                     </button>
                 </div>
             </div>
