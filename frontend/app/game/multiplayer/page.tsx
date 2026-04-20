@@ -113,8 +113,8 @@ export default function MultiplayerPage() {
   const handleLobbyUpdate = useCallback((data: LobbyUpdateEvent) => {
     console.log("Lobby Updated:", data);
     const playerList: LobbyPlayer[] = data.playerList.map((user) => ({
-      user,
-      isCurrentUser: user === hostUsername,
+      username: user,
+      isCurrentUser: username === hostUsername,
     }));
     setPlayers(playerList);
   }, []);

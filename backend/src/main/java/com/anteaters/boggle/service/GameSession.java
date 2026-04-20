@@ -3,10 +3,9 @@ package com.anteaters.boggle.service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -102,7 +101,7 @@ public class GameSession{
         this.gameEventService = gameEventService;
 
         // timer related
-        duration = 10; // TODO: hard-coded for now, change for future implementation of settings
+        duration = 180; // TODO: hard-coded for now, change for future implementation of settings
     }
 
     /**
