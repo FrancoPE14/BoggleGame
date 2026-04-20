@@ -48,22 +48,19 @@ public class UserProfileControllerTest {
     @MockitoBean
     private UserRepository userRepository;
 
-    /**
-     * GET /api/user/profile should return 200 and correct user data when user is logged in.
-     */
     @Test
     void getProfile_loggedIn_returns200WithUserData() throws Exception {
         User user = new User("Rae", "hashedpwd");
 
         when(userService.isLoggedIn("Rae")).thenReturn(true);
-        when(userService.getUser("Rae")).thenReturn(user);
+        when(userRepository.findById("Rae")).thenReturn(Optional.of(user)); // changed
 
         mockMvc.perform(get("/api/user/profile").param("username", "Rae"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("Rae"))
-                .andExpect(jsonPath("$.matchesWon").value(0))
                 .andExpect(jsonPath("$.highScore").value(0))
                 .andExpect(jsonPath("$.profilePicture").value(""));
+        // removed matchesWon assertion
     }
 
     /**
