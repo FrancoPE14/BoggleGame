@@ -1,3 +1,5 @@
+"use client"
+
 import type { FinalScore } from "./use-game-stream";
 import Link from "next/link";
 
@@ -28,7 +30,7 @@ export default function GameOver({
                         Ranking:
                     </h5>
                     <ol>
-                        {finalScores?.map((entry, index) => (
+                        {finalScores && finalScores.map((entry, index) => (
                             <li key={entry.username}>
                                 {index + 1}. {entry.username} - {entry.score}
                             </li>

@@ -1,18 +1,19 @@
 package com.anteaters.boggle.controller;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.anteaters.boggle.model.FinishAckResponse;
 import com.anteaters.boggle.model.SessionSummary;
 import com.anteaters.boggle.model.WordSubmissionResult;
-import com.anteaters.boggle.service.GameService;
 import com.anteaters.boggle.service.BoggleBoard;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.anteaters.boggle.service.GameService;
 
 /**
  * REST controller for multiplayer game operations.
@@ -162,5 +163,21 @@ public class GameController{
         response.put("sessionId", sessionId);
 
         return response;
+    }
+
+    
+    /**
+     * Returns the session id that a given username (player) is in
+     *
+     * Usage example: GET /api/session
+     *
+     * This endpoint is intended for the lobby waiting room page
+     * for a specific game
+     *
+     * @return session id of the game the player is in, else -1
+     */
+    @GetMapping("/api/session")
+    public int getSessions(@RequestParam String username) {
+        return service.getSessionId(username);
     }
 }

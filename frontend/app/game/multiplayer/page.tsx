@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import BoggleBoard, { BoggleBoardHandle } from "../../components/boggle-board";
 import WordInput from "../../components/word-input";
 import ScoreDisplay from "../../components/score-display";
@@ -10,18 +10,26 @@ import useWordVerification from "../../components/use-word-verification";
 import useGameStream, {
   GameStartedEvent,
   GameResultsEvent,
+  GameStateEvent,
+  GameEndedEvent,
 } from "../../components/use-game-stream";
+import type { FinalScore } from "../../components/use-game-stream";
+import GameOver from "../../components/game-over";
 
 export default function MultiplayerPage() {
   const params = useSearchParams();
   const sessionId = Number(params.get("sessionId"));
   const username = params.get("username") || "user";
+  const router = useRouter();
 
   const [gameStarted, setGameStarted] = useState(false);
   const [roundEnded, setRoundEnded] = useState(false);
   const [board, setBoard] = useState<string[][] | null>(null);
   const [result, setResult] = useState<GameResultsEvent | null>(null);
   const [startSignal, setStartSignal] = useState(0);
+  const [finalScores, setFinalScores] = useState<FinalScore[] | null>(null);
+  const [liveScore, setLiveScore] = useState(0);
+  const [sessionEnded, setSessionEnded] = useState(false);
 
   const { submittedWords, verifyWord, resetWords, currentScore } =
     useWordVerification({ sessionId, username });
@@ -34,6 +42,8 @@ export default function MultiplayerPage() {
       setGameStarted(true);
       setRoundEnded(false);
       setResult(null);
+      setSessionEnded(false);
+      setLiveScore(0);
       setStartSignal((prev) => prev + 1);
       resetWords();
     },
@@ -45,24 +55,45 @@ export default function MultiplayerPage() {
     setGameStarted(false);
 
     try {
-      await fetch(
-        `http://localhost:8080/api/finish?sessionId=${sessionId}&username=${username}`,
+      const res = await fetch(
+        `http://163.192.206.210:8080/api/finish?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
         { method: "POST" }
       );
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Finish failed: ${res.status} ${text}`);
+      }
     } catch (error) {
       console.error("Failed to acknowledge round finish", error);
     }
   }, [sessionId, username]);
 
+  const handleGameState = useCallback(
+    (data: GameStateEvent) => {
+      if (data.username === username) {
+        setLiveScore(data.currentScore);
+      }
+    },
+    [username]
+  );
+
   const handleGameResults = useCallback((data: GameResultsEvent) => {
     setResult(data);
+  }, []);
+
+  const handleGameEnded = useCallback((data: GameEndedEvent) => {
+    console.log("Session ended:", data.sessionId);
+    setFinalScores(data.finalScores);
+    setSessionEnded(true);
   }, []);
 
   useGameStream({
     sessionId,
     onGameStarted: handleGameStarted,
-    onRoundEnded: handleRoundEnded,
+    onGameState: handleGameState,
     onGameResults: handleGameResults,
+    onGameEnded: handleGameEnded,
   });
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -72,6 +103,9 @@ export default function MultiplayerPage() {
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
     boggleBoardRef.current?.handleMouseUp(e);
   }, []);
+
+  const displayedScore =
+    result?.scores?.[username] ?? liveScore ?? currentScore;
 
   return (
     <div
@@ -85,6 +119,7 @@ export default function MultiplayerPage() {
             gameStarted={gameStarted}
             roundEnded={roundEnded}
             startSignal={startSignal}
+            onRoundEnded={handleRoundEnded}
           />
         )}
 
@@ -109,30 +144,18 @@ export default function MultiplayerPage() {
             <WordInput submittedWords={submittedWords} />
             <ScoreDisplay
               submittedWords={submittedWords}
-              currentScore={currentScore}
+              currentScore={displayedScore}
             />
           </>
         )}
 
-        {roundEnded && !result && (
-          <div className="mt-6 text-xl font-semibold">
-            Waiting for results...
-          </div>
-        )}
-
-        {result && (
-          <div className="mt-6 flex flex-col items-center gap-2">
-            <div className="text-2xl font-bold">
-              Winner: {result.winner}
-            </div>
-            <div className="flex flex-col items-center text-lg">
-              {Object.entries(result.scores).map(([player, score]) => (
-                <div key={player}>
-                  {player}: {score}
-                </div>
-              ))}
-            </div>
-          </div>
+        {finalScores && (
+            <GameOver
+                onPlayAgain={() => router.push("/")}
+                finalScore={currentScore}
+                finalScores={finalScores}
+                isMultiplayer={true}
+            />
         )}
       </main>
     </div>

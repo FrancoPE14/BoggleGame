@@ -1,18 +1,18 @@
 package com.anteaters.boggle.service;
 
-import com.anteaters.boggle.repository.UserRepository;
-import com.anteaters.boggle.model.SessionSummary;
-import com.anteaters.boggle.model.WordSubmissionResult;
-
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import com.anteaters.boggle.model.SessionSummary;
+import com.anteaters.boggle.model.WordSubmissionResult;
+import com.anteaters.boggle.repository.UserRepository;
 
 /**
  * This class stores the state of a multiplayer game session, including the session id,
@@ -100,7 +100,7 @@ public class GameSession{
         this.gameEventService = gameEventService;
 
         // timer related
-        duration = 180; // TODO: hard-coded for now, change for future implementation of settings
+        duration = 10; // TODO: hard-coded for now, change for future implementation of settings
     }
 
     /**
