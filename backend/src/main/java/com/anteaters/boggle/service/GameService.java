@@ -201,12 +201,6 @@ public class GameService {
             throw new IllegalArgumentException("The session of this id does not exists");
         }
 
-        // TODO: Use this once login issue is resolved.
-        //User user = userRegulation.getUser(username);
-        //if (user == null) {
-        //    throw new IllegalArgumentException("The user is not logged in");
-        //}
-
         User user;
         try {
             user = repo.findById(username).get();
