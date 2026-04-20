@@ -6,7 +6,7 @@ import BoggleBoard, { BoggleBoardHandle } from "../../components/boggle-board";
 import WordInput from "../../components/word-input";
 import ScoreDisplay from "../../components/score-display";
 import MultiplayerTimer from "../../components/multiplayer-timer";
-import useWordVerification from "../../components/use-word-verification";
+import useMultiplayerWordSubmission from "../../components/use-multiplayer-word-submission";
 import useGameStream, {
   GameStartedEvent,
   GameResultsEvent,
@@ -16,6 +16,14 @@ import useGameStream, {
 import type { FinalScore } from "../../components/use-game-stream";
 import GameOver from "../../components/game-over";
 
+/**
+ * Multiplayer gameplay page.
+ *
+ * For score updates, this page must use the multiplayer submission hook rather
+ * than the single-player verification hook. That ensures each submitted word
+ * goes through the backend scoring pipeline and the score shown in the UI
+ * reflects the authoritative server state.
+ */
 export default function MultiplayerPage() {
   const params = useSearchParams();
   const sessionId = Number(params.get("sessionId"));
@@ -31,11 +39,18 @@ export default function MultiplayerPage() {
   const [liveScore, setLiveScore] = useState(0);
   const [sessionEnded, setSessionEnded] = useState(false);
 
+  /**
+   * Multiplayer pages must submit words through /api/submit-word so the backend
+   * can update ScoreTracker and return the correct currentScore value.
+   */
   const { submittedWords, verifyWord, resetWords, currentScore } =
-    useWordVerification({ sessionId, username });
+    useMultiplayerWordSubmission(sessionId, username);
 
   const boggleBoardRef = useRef<BoggleBoardHandle>(null);
 
+  /**
+   * Initializes local UI state when the server broadcasts the start of a new game.
+   */
   const handleGameStarted = useCallback(
     (data: GameStartedEvent) => {
       setBoard(data.board);
@@ -47,9 +62,16 @@ export default function MultiplayerPage() {
       setStartSignal((prev) => prev + 1);
       resetWords();
     },
-    [resetWords]
+    [resetWords],
   );
 
+  /**
+   * Acknowledges round completion to the backend when the local timer ends.
+   *
+   * This logic is left unchanged here because the requested fix is limited to
+   * score updates. The finish call is still retained to preserve the existing
+   * end-of-round behavior in this branch.
+   */
   const handleRoundEnded = useCallback(async () => {
     setRoundEnded(true);
     setGameStarted(false);
@@ -57,7 +79,7 @@ export default function MultiplayerPage() {
     try {
       const res = await fetch(
         `http://163.192.206.210:8080/api/finish?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
-        { method: "POST" }
+        { method: "POST" },
       );
 
       if (!res.ok) {
@@ -69,19 +91,29 @@ export default function MultiplayerPage() {
     }
   }, [sessionId, username]);
 
+  /**
+   * Updates the visible score when the backend broadcasts a new game-state event
+   * for the current player.
+   */
   const handleGameState = useCallback(
     (data: GameStateEvent) => {
       if (data.username === username) {
         setLiveScore(data.currentScore);
       }
     },
-    [username]
+    [username],
   );
 
+  /**
+   * Stores final result data when the backend publishes end-of-round results.
+   */
   const handleGameResults = useCallback((data: GameResultsEvent) => {
     setResult(data);
   }, []);
 
+  /**
+   * Stores final score ordering when the backend ends the session.
+   */
   const handleGameEnded = useCallback((data: GameEndedEvent) => {
     console.log("Session ended:", data.sessionId);
     setFinalScores(data.finalScores);
@@ -104,6 +136,10 @@ export default function MultiplayerPage() {
     boggleBoardRef.current?.handleMouseUp(e);
   }, []);
 
+  /**
+   * Prefers the final result score when available. Otherwise, it uses the latest
+   * live score from SSE and falls back to the local hook state as needed.
+   */
   const displayedScore =
     result?.scores?.[username] ?? liveScore ?? currentScore;
 
@@ -150,12 +186,12 @@ export default function MultiplayerPage() {
         )}
 
         {finalScores && (
-            <GameOver
-                onPlayAgain={() => router.push("/")}
-                finalScore={currentScore}
-                finalScores={finalScores}
-                isMultiplayer={true}
-            />
+          <GameOver
+            onPlayAgain={() => router.push("/")}
+            finalScore={currentScore}
+            finalScores={finalScores}
+            isMultiplayer={true}
+          />
         )}
       </main>
     </div>
