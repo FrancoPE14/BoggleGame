@@ -114,7 +114,7 @@ export default function ProfilePage() {
                                     {uploadSuccess && <Alert variant="success">Profile picture updated!</Alert>}
 
                                     <p><strong>Username:</strong> {profile.username}</p>
-                                    <p><strong>High Score:</strong> {profile.highScore}</p>
+                                    <p><strong>Highest Score:</strong> {profile.highScore}</p>
                                     <Button variant="dark" href="/" className="mt-3 w-100">Back to Menu</Button>
                                 </Card.Body>
                             </Card>
