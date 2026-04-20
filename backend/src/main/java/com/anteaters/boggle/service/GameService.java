@@ -127,15 +127,11 @@ public class GameService {
         //    throw new IllegalArgumentException("The user is not logged in");
         //}
 
-        // TODO: delete this and use above once login issue is fixed.
         User user;
         try {
-            user = userRegulation.getUser(username);
+            user = repo.findById(username).get();
         } catch (Exception e) {
-            user = new User(username, "password");
-        }
-        if (user == null) {
-            user = new User(username, "password");
+            throw new IllegalStateException("Unregistered user");
         }
 
         int existingSessionId = getSessionId(username);
@@ -209,15 +205,11 @@ public class GameService {
         //    throw new IllegalArgumentException("The user is not logged in");
         //}
 
-        // TODO: delete this and use above once login issue is resolved.
         User user;
         try {
-            user = userRegulation.getUser(username);
+            user = repo.findById(username).get();
         } catch (Exception e) {
-            user = new User(username, "password");
-        }
-        if (user == null) {
-            user = new User(username, "password");
+            throw new IllegalStateException("Unregistered user");
         }
 
         GameSession session = sessions.get(sessionId);
@@ -267,16 +259,12 @@ public class GameService {
         //    throw new IllegalArgumentException("The user is not logged in");
         //}
 
-        //TODO: delete this and use above once login issue is fixed.
         GameSession session = sessions.get(sessionId);
         User user;
         try {
-            user = userRegulation.getUser(username);
+            user = repo.findById(username).get();
         } catch (Exception e) {
-            user = new User(username, "password");
-        }
-        if (user == null) {
-            user = new User(username, "password");
+            throw new IllegalStateException("Unregistered user");
         }
 
         if (!session.isPlayerAdded(username)) {
@@ -320,15 +308,11 @@ public class GameService {
         //    throw new IllegalArgumentException("The user is not logged in");
         //}
 
-        // TODO: delete this and use above once login issue is fixed.
         User user;
         try {
-            user = userRegulation.getUser(username);
+            user = repo.findById(username).get();
         } catch (Exception e) {
-            user = new User(username, "password");
-        }
-        if (user == null) {
-            user = new User(username, "password");
+            throw new IllegalStateException("Unregistered user");
         }
         Player player = new Player(user, calc);
         session.addPlayer(player);

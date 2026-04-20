@@ -38,7 +38,7 @@ public class GameServiceStartGameTest {
     void setUp() {
         GameSession.resetIdCnt();
 
-        repo = mock(UserRepository.class);
+        repo = new FakeUserRepository();
         userRegulation = mock(UserRegulationService.class);
         wordSubmissionService = mock(WordSubmissionService.class);
         gameEventService = mock(GameEventService.class);
@@ -54,7 +54,9 @@ public class GameServiceStartGameTest {
      * @return real user instance
      */
     private User realUser(String username) {
-        return new User(username, "password");
+        User user = new User(username, "password");
+        repo.save(user);
+        return user;
     }
 
     /**
