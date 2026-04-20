@@ -1,0 +1,25 @@
+stages:
+  - lint
+  - test
+
+lint:
+  stage: lint
+  image: node:20
+  script:
+    - cd frontend
+    - npm ci
+    - npm run lint
+
+unit-test:
+  stage: test
+  image: eclipse-temurin:21
+  services:
+    - mysql:8.0
+  variables:
+    MYSQL_DATABASE: boggle
+    MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+    MYSQL_USER: boggle_user
+    MYSQL_PASSWORD: $MYSQL_PASSWORD
+  script:
+    - cd backend
+    - ./gradlew test
