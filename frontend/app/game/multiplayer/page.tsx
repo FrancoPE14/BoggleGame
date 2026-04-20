@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import BoggleBoard, { BoggleBoardHandle } from "../../components/boggle-board";
 import WordInput from "../../components/word-input";
@@ -13,8 +13,28 @@ import useGameStream, {
   GameStateEvent,
   GameEndedEvent,
 } from "../../components/use-game-stream";
-import type { FinalScore } from "../../components/use-game-stream";
+import type {
+  FinalScore,
+  LobbyUpdateEvent,
+} from "../../components/use-game-stream";
 import GameOver from "../../components/game-over";
+import PlayerList from "../../components/player-list";
+
+/**
+ * Represents a single player in the lobby.
+ */
+type LobbyPlayer = {
+  username: string;
+  isCurrentUser: boolean;
+};
+
+interface Lobby {
+  sessionId: number;
+  started: boolean;
+  playerCount: number;
+  maxPlayers: number;
+  hostUsername: string;
+}
 
 /**
  * Multiplayer gameplay page.
@@ -40,6 +60,23 @@ export default function MultiplayerPage() {
   const [sessionEnded, setSessionEnded] = useState(false);
 
   /**
+   * Builds the initial mock player list for the lobby.
+   * Reads the current user's name from sessionStorage.
+   *
+   * @returns The initial array of lobby players.
+   */
+  function buildInitialPlayers(): LobbyPlayer[] {
+    const username =
+      typeof window !== "undefined"
+        ? window.sessionStorage.getItem("username")?.trim() || "You"
+        : "You";
+
+    // TODO: Replace mock player data with real lobby state from backend.
+    // Depends on backend issues #179 (lobby endpoints) and #166 (multiplayer support).
+    return [{ username, isCurrentUser: true }];
+  }
+
+  /**
    * Multiplayer pages must submit words through /api/submit-word so the backend
    * can update ScoreTracker and return the correct currentScore value.
    */
@@ -47,6 +84,44 @@ export default function MultiplayerPage() {
     useMultiplayerWordSubmission(sessionId, username);
 
   const boggleBoardRef = useRef<BoggleBoardHandle>(null);
+  const [players, setPlayers] = useState<LobbyPlayer[]>(buildInitialPlayers);
+  const [hostUsername, setHostUsername] = useState("");
+
+  useEffect(() => {
+    fetch("/api/sessions")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load session.");
+        return res.json();
+      })
+      .then((data) => {
+        console.log(data);
+        console.log(data[sessionId].hostUsername);
+        setHostUsername(data[sessionId].hostUsername);
+      })
+      .catch(() => {
+        console.error("Could not load session. Please try again later.");
+      });
+  }, []);
+
+  const onStartButtonClicked = () => {
+    fetch(
+      `/api/start?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
+      { method: "POST" },
+    ).catch((err) => console.error(err));
+  };
+
+  // TODO: Leave button
+  const onLeaveButtonClicked = () => {};
+
+  const handleLobbyUpdate = useCallback((data: LobbyUpdateEvent) => {
+    console.log("Lobby Updated:", data);
+    const currentUsername = window.sessionStorage.getItem("username")?.trim();
+    const playerList: LobbyPlayer[] = data.playerList.map((username) => ({
+      username,
+      isCurrentUser: currentUsername === data.hostUsername,
+    }));
+    setPlayers(playerList);
+  }, []);
 
   /**
    * Initializes local UI state when the server broadcasts the start of a new game.
@@ -126,6 +201,7 @@ export default function MultiplayerPage() {
     onGameState: handleGameState,
     onGameResults: handleGameResults,
     onGameEnded: handleGameEnded,
+    onLobbyUpdate: handleLobbyUpdate,
   });
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -159,9 +235,26 @@ export default function MultiplayerPage() {
           />
         )}
 
+        {/*Before game start*/}
         {!board && (
           <div className="mt-6 text-xl font-semibold">
             Waiting for game to start...
+            {/* Player list */}
+            <div className="w-full max-w-2xl bg-white rounded-2xl border border-amber-200 shadow-sm p-6 mb-6">
+              <PlayerList players={players} />
+            </div>
+            {/*Start Button*/}
+            {hostUsername === username && (
+              <button
+                type="button"
+                onClick={onStartButtonClicked}
+                //disabled={!canStart}
+                className="px-8 py-3 rounded-xl bg-amber-500 text-white font-bold text-lg shadow-md hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Start the multiplayer game"
+              >
+                Start Game
+              </button>
+            )}
           </div>
         )}
 
