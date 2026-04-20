@@ -37,7 +37,7 @@ export default function LobbyPage() {
     const username = window.sessionStorage.getItem("username");
 
     if (!username) {
-      console.error("No username found in sessionStorage");
+      alert("Login to join a lobby.");
       return;
     }
 
@@ -61,7 +61,8 @@ export default function LobbyPage() {
         );
       })
       .catch((err) => {
-        console.error("Error joining lobby:", err);
+        //console.error("Error joining lobby:", err);
+        alert(err.message);
       });
   }
 

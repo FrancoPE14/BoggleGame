@@ -17,6 +17,7 @@ export default function Logout() {
         }
 
         window.sessionStorage.setItem('loginStatus', JSON.stringify(false));
+        window.sessionStorage.removeItem("username");
     }, [loginStatus, setLoginStatus]);
 
     return <>
