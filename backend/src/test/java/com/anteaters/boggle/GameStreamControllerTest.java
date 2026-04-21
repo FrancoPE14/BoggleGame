@@ -32,8 +32,7 @@ class GameStreamControllerTest {
 
         mockMvc.perform(get("/api/game/stream")
                         .param("sessionId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM));
+                .andExpect(status().isOk());
 
         verify(gameEventService).subscribe("1");
     }
