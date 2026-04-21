@@ -23,5 +23,12 @@ unit-test:
   script:
     - cd backend
     - ./gradlew test jacocoTestReport
-    - cat build/reports/jacoco/test/jacocoTestReport.xml | grep -o 'missed="[0-9]*" covered="[0-9]*"' | awk -F'"' 'BEGIN{m=0;c=0} {m+=$2; c+=$4} END{printf "Coverage: %.1f%%\n", c/(m+c)*100}'
-  coverage: '/Coverage: \d+\.\d+%/'
+  coverage: '/Total.*?([0-9]{1,3})%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: backend/build/reports/jacoco/test/jacocoTestReport.xml
+    paths:
+      - backend/build/reports/jacoco/
+    expire_in: 1 week

@@ -5,16 +5,6 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
-test {
-	finalizedBy jacocoTestReport
-}
-
-jacocoTestReport {
-	reports {
-		xml.required = true
-	}
-}
-
 group = 'com.anteaters'
 version = '0.0.1-SNAPSHOT'
 description = 'starter project for Boggle Sprint Boot backend'
@@ -35,15 +25,18 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
-	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-
-
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+	}
 }
