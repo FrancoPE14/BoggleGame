@@ -40,3 +40,23 @@ jacocoTestReport {
 		xml.required = true
 	}
 }
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+	}
+	doLast {
+		def report = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+		def parser = new XmlParser()
+		parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
+		parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+		def xml = parser.parse(report)
+		def counter = xml.counter.find { it.@type == 'INSTRUCTION' }
+		def missed = counter.@missed.toInteger()
+		def covered = counter.@covered.toInteger()
+		def total = missed + covered
+		def pct = (covered / total * 100).toInteger()
+		println "Total coverage: ${pct}%"
+	}
+}
