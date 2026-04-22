@@ -38,7 +38,10 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
-    # No network defined; uses the default bridge to access the outside world
+    environment:
+      BACKEND_BASE_URL: http://host.docker.internal:8080
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   mysql_data:

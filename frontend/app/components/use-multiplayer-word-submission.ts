@@ -79,7 +79,7 @@ export default function useMultiplayerWordSubmission(
 
       try {
         const res = await fetch(
-          `http://163.192.206.210:8080/api/submit-word?sessionId=${sessionId}&username=${encodeURIComponent(username)}&word=${encodeURIComponent(normalized)}`,
+          `http://localhost:8080/api/submit-word?sessionId=${sessionId}&username=${encodeURIComponent(username)}&word=${encodeURIComponent(normalized)}`,
           { method: "POST" },
         );
 
