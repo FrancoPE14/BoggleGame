@@ -55,17 +55,17 @@ export default function Timer({ durationSeconds = 180, onGameStart, onGameEnd, f
         if (status !== "running") return;
 
         intervalRef.current = setInterval(() => {
-            setSecondsLeft((prev) => {
-                if (prev <= 1) {
-                    handleGameEnd();
-                    return 0;
-                }
-                return prev - 1;
-            });
+            setSecondsLeft((prev) => Math.max(0, prev - 1));
         }, 1000);
 
         return clearTimer;
-    }, [status, handleGameEnd]);
+    }, [status]);
+
+    useEffect(() => {
+        if (secondsLeft === 0 && status === "running") {
+            handleGameEnd();
+        }
+    }, [secondsLeft, status, handleGameEnd]);
 
     /**
      * Resets and restarts the timer from the selected duration.

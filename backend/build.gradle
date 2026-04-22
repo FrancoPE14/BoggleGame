@@ -1,6 +1,7 @@
 plugins {
+	id 'jacoco'
 	id 'java'
-	id 'org.springframework.boot' version '4.0.3'
+	id 'org.springframework.boot' version '3.4.4'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -21,18 +22,31 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
-	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-
-
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+	}
+	doLast {
+		def report = file("${layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml")
+		def text = report.text
+		def matches = (text =~ /type="INSTRUCTION" missed="(\d+)" covered="(\d+)"/)
+		def lastMatch = matches.collect { it }[-1]
+		def missed = lastMatch[1].toInteger()
+		def covered = lastMatch[2].toInteger()
+		def pct = (covered / (missed + covered) * 100).toInteger()
+		println "Total coverage: ${pct}%"
+	}
 }
