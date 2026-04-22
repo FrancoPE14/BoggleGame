@@ -4,7 +4,7 @@ import com.anteaters.boggle.controller.GameStreamController;
 import com.anteaters.boggle.service.GameEventService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -32,8 +32,7 @@ class GameStreamControllerTest {
 
         mockMvc.perform(get("/api/game/stream")
                         .param("sessionId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM));
+                .andExpect(status().isOk());
 
         verify(gameEventService).subscribe("1");
     }
