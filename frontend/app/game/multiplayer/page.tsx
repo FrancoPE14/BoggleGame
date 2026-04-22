@@ -102,7 +102,7 @@ export default function MultiplayerPage() {
 
   const onStartButtonClicked = () => {
     fetch(
-      `http://128.105.37.147:8080/api/start?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
+      `http://localhost:8080/api/start?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
       { method: "POST" },
     ).catch((err) => console.error(err));
   };
@@ -149,7 +149,7 @@ export default function MultiplayerPage() {
 
     try {
       const res = await fetch(
-        `http://128.105.37.147:8080/api/finish?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
+        `http://localhost:8080/api/finish?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
         { method: "POST" },
       );
 
