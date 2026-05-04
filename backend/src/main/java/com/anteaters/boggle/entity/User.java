@@ -6,12 +6,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
+import jakarta.persistence.Lob;
 
 /**
  * Each instance of this should corresponds to an entry in the User table of the database
  */
 @Entity
-@Table(name = "user")
+@Table(name = "boggle_user")
 public class User{
     @Id
     @Column(name = "user_name")
@@ -21,7 +22,8 @@ public class User{
     private int matchesWon;
     @Column(name = "highest_score")
     private int highScore;
-    @Column(name = "profile_picture", columnDefinition = "MEDIUMTEXT")
+    @Lob
+    @Column(name = "profile_picture")
     private String profilePicture;
 
     /**

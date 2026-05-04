@@ -26,8 +26,17 @@ export type GameResultsEvent = {
   winner: string;
 };
 
+/**
+ * Ordered ranking row shown in the multiplayer game-over overlay.
+ */
+export type FinalScore = {
+  username: string;
+  score: number;
+};
+
 export type GameEndedEvent = {
   sessionId: number;
+  finalScores?: FinalScore[];
 };
 
 export type LobbyUpdateEvent = {
@@ -61,9 +70,10 @@ export default function useGameStream({
   useEffect(() => {
     if (Number.isNaN(sessionId)) return;
 
-    const es = new EventSource(
-      `http://localhost:8080/api/game/stream?sessionId=${sessionId}`
-    );
+    // Same-origin URL so browsers hit the Next server (rewrites proxy to Spring).
+    // Avoids localhost, which pointed at each player's own machine and broke remote multiplayer.
+    const streamUrl = `/api/game/stream?sessionId=${encodeURIComponent(String(sessionId))}`;
+    const es = new EventSource(streamUrl);
 
     es.addEventListener("connected", (e: MessageEvent) => {
       console.log("SSE connected:", e.data);

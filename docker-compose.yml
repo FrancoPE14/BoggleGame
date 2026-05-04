@@ -23,6 +23,11 @@ services:
     profiles: ["api"]
     restart: always
     env_file: .env
+    environment:
+      # Override JDBC host to the Compose service name (classpath config may point elsewhere).
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "8080:8080"
     depends_on:
@@ -32,6 +37,9 @@ services:
       - backend-internal
 
   # --- FRONTEND VM TIER ---
+  # Rewrites `/api/*` on the Next server to BACKEND_BASE_URL (Spring).
+  # Default: Docker service hostname when api+ui stacks run together.
+  # Override in .env (e.g. http://host.docker.internal:8080) if frontend container talks to backend on host/another VM only.
   frontend:
     build: ./frontend
     profiles: ["ui"]
@@ -39,9 +47,9 @@ services:
       - "3000:3000"
     restart: unless-stopped
     environment:
-      BACKEND_BASE_URL: http://host.docker.internal:8080
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL:-http://backend:8080}
+    networks:
+      - backend-internal
 
 volumes:
   mysql_data:

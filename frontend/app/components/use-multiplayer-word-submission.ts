@@ -32,7 +32,7 @@ export type WordSubmissionResponse = {
  * Provides multiplayer-specific word submission behavior.
  *
  * Unlike the single-player verification hook, this hook sends each word to
- * /api/submit-word so the backend can perform validation, duplicate checks,
+ * the backend via POST /api/submit-word (same-origin proxy in production).
  * score updates, and session-level state tracking.
  *
  * The function exposed to the board is still named verifyWord because the
@@ -79,7 +79,7 @@ export default function useMultiplayerWordSubmission(
 
       try {
         const res = await fetch(
-          `http://localhost:8080/api/submit-word?sessionId=${sessionId}&username=${encodeURIComponent(username)}&word=${encodeURIComponent(normalized)}`,
+          `/api/submit-word?sessionId=${sessionId}&username=${encodeURIComponent(username)}&word=${encodeURIComponent(normalized)}`,
           { method: "POST" },
         );
 

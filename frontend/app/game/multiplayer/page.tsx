@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import BoggleBoard, { BoggleBoardHandle } from "../../components/boggle-board";
 import WordInput from "../../components/word-input";
@@ -44,7 +44,21 @@ interface Lobby {
  * goes through the backend scoring pipeline and the score shown in the UI
  * reflects the authoritative server state.
  */
-export default function MultiplayerPage() {
+export default function MultiplayerPage(): React.ReactElement {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-amber-100 font-sans">
+          <p className="text-lg font-medium text-amber-800">Loading game…</p>
+        </div>
+      }
+    >
+      <MultiplayerPageContent />
+    </Suspense>
+  );
+}
+
+function MultiplayerPageContent() {
   const params = useSearchParams();
   const sessionId = Number(params.get("sessionId"));
   const username = params.get("username") || "user";
@@ -102,7 +116,7 @@ export default function MultiplayerPage() {
 
   const onStartButtonClicked = () => {
     fetch(
-      `http://localhost:8080/api/start?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
+      `/api/start?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
       { method: "POST" },
     ).catch((err) => console.error(err));
   };
@@ -112,12 +126,13 @@ export default function MultiplayerPage() {
 
   const handleLobbyUpdate = useCallback((data: LobbyUpdateEvent) => {
     console.log("Lobby Updated:", data);
-    const playerList: LobbyPlayer[] = data.playerList.map((user) => ({
+    const list = data.playerList ?? data.players ?? [];
+    const playerList: LobbyPlayer[] = list.map((user) => ({
       username: user,
       isCurrentUser: user === username,
     }));
     setPlayers(playerList);
-  }, []);
+  }, [username]);
 
   /**
    * Initializes local UI state when the server broadcasts the start of a new game.
@@ -149,7 +164,7 @@ export default function MultiplayerPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/finish?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
+        `/api/finish?sessionId=${sessionId}&username=${encodeURIComponent(username)}`,
         { method: "POST" },
       );
 
@@ -187,7 +202,7 @@ export default function MultiplayerPage() {
    */
   const handleGameEnded = useCallback((data: GameEndedEvent) => {
     console.log("Session ended:", data.sessionId);
-    setFinalScores(data.finalScores);
+    setFinalScores(data.finalScores ?? null);
     setSessionEnded(true);
   }, []);
 
@@ -224,7 +239,6 @@ export default function MultiplayerPage() {
       <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center justify-center bg-amber-100 px-16 py-32 dark:bg-amber-100">
         {gameStarted && (
           <MultiplayerTimer
-            gameStarted={gameStarted}
             roundEnded={roundEnded}
             startSignal={startSignal}
             onRoundEnded={handleRoundEnded}

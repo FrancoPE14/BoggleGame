@@ -27,7 +27,7 @@ public class LeaderboardService {
      * @return list of maps each containing user_name and highest_score
      */
     public List<Map<String, Object>> getLeaderboard() {
-        String sql = "SELECT user_name, highest_score FROM user ORDER BY highest_score DESC";
+        String sql = "SELECT user_name, highest_score FROM boggle_user ORDER BY highest_score DESC";
         return jdbcTemplate.queryForList(sql);
     }
 }

@@ -8,6 +8,11 @@ import { SubmittedWord } from "./use-word-verification";
 type ScoreDisplayProps = {
     /** The list of all submitted words with their validation status. */
     submittedWords: SubmittedWord[];
+    /**
+     * Optional authoritative total (e.g. multiplayer server score).
+     * When omitted, total is computed from submitted words only.
+     */
+    currentScore?: number;
 };
 
 /**
@@ -47,8 +52,20 @@ function getTotalScore(submittedWords: SubmittedWord[]): number {
  * @param props - The component props containing the submitted words array.
  * @returns The rendered score display component.
  */
-export default function ScoreDisplay({ submittedWords }: ScoreDisplayProps): React.JSX.Element {
-    const totalScore: number = getTotalScore(submittedWords);
+export default function ScoreDisplay({
+    submittedWords,
+    currentScore: authoritativeTotal,
+}: ScoreDisplayProps): React.JSX.Element {
+    const computedTotal: number = getTotalScore(submittedWords);
+    const totalScore: number =
+        authoritativeTotal !== undefined ? authoritativeTotal : computedTotal;
+
+    /** Per-row points: prefer server-supplied pointsAwarded when present. */
+    function rowPoints(w: SubmittedWord): number {
+        if (!w.valid) return 0;
+        if (typeof w.pointsAwarded === "number") return w.pointsAwarded;
+        return calculateScore(w.word.length);
+    }
 
     return (
         <div className="flex flex-col items-center gap-2 w-full max-w-md mx-auto mt-4">
@@ -85,9 +102,7 @@ export default function ScoreDisplay({ submittedWords }: ScoreDisplayProps): Rea
                                     w.valid ? "text-amber-600" : "text-red-400"
                                 }`}
                             >
-                                {w.valid
-                                    ? `+${calculateScore(w.word.length)}`
-                                    : "0"}
+                                {w.valid ? `+${rowPoints(w)}` : "0"}
                             </span>
                         </div>
                     ))}

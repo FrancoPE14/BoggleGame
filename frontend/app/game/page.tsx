@@ -2,14 +2,28 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import {useState, useCallback, useRef, useEffect} from "react";
+import {useState, useCallback, useRef, useEffect, Suspense} from "react";
 import BoggleBoard, { BoggleBoardHandle } from "../components/boggle-board";
 import WordInput from "../components/word-input";
 import ScoreDisplay from "../components/score-display";
 import Timer from "../components/timer";
 import useWordVerification from "../components/use-word-verification";
 
-export default function Home() {
+export default function Home(): React.ReactElement {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-amber-100 font-sans">
+          <p className="text-lg font-medium text-amber-800">Loading game…</p>
+        </div>
+      }
+    >
+      <SoloGamePage />
+    </Suspense>
+  );
+}
+
+function SoloGamePage() {
   const searchParams = useSearchParams();
   const duration = Number(searchParams.get("duration")) || 180;
   const boardSize = Number(searchParams.get("boardSize")) || 5;
